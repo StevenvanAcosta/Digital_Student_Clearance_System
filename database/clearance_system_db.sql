@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 12, 2025 at 01:03 AM
+-- Generation Time: Mar 12, 2025 at 01:29 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -126,6 +126,13 @@ CREATE TABLE `signatory` (
   `status` varchar(500) NOT NULL,
   `date_created` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `signatory`
+--
+
+INSERT INTO `signatory` (`id`, `signatory_list_id`, `student_id`, `status`, `date_created`) VALUES
+(4, '10', '36', 'approve', '2025-03-12 08:20:55');
 
 -- --------------------------------------------------------
 
@@ -269,7 +276,7 @@ ALTER TABLE `school_year`
 -- AUTO_INCREMENT for table `signatory`
 --
 ALTER TABLE `signatory`
-  MODIFY `id` int(250) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(250) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `signatory_list`
