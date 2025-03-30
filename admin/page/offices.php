@@ -9,16 +9,6 @@
 			<!--begin::Breadcrumb-->
 			<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
 				<!--begin::Item-->
-				<li class="breadcrumb-item text-muted">
-					<a href="index.html" class="text-muted text-hover-primary"><i class="bi bi-gear"></i></a>
-				</li>
-				<!--end::Item-->
-				<!--begin::Item-->
-				<li class="breadcrumb-item">
-					<span class="bullet bg-gray-500 w-5px h-2px"></span>
-				</li>
-				<!--end::Item-->
-				<!--begin::Item-->
 				<li class="breadcrumb-item text-muted"><?php echo ucfirst(str_replace(' ', '_', $page)) ;?></li>
 				<!--end::Item-->
 			</ul>
@@ -42,175 +32,192 @@
 $table="offices";
 $error="";
 
-	if(isset($_POST['add'])){
-		extract($_POST);
-        $data="";
+// INSERT FUNCTION
+if(isset($_POST['add'])){
+    extract($_POST);
+    $data="";
 
-        foreach ($_POST as $k => $v){
-
-            if(empty($data)){
-                $data .= " $k='$v' ";
+    foreach ($_POST as $k => $v){
+        if(empty($data)){
+            $data .= " $k='$v' ";
+        }else{
+            if($k=="add"){
+                $data .= "";
             }else{
-                if($k=="add"){
-                    $data .= "";
-                }else{
-                    $data .= ", $k='$v' ";
-                }
-                
+                $data .= ", $k='$v' ";
             }
         }
+    }
 
-        
+    $data;
 
-        $data;
+    $data.=", date_time=NOW()";
+    $data.=", type='offices'";
+    $data.=", password='4052e09931ceddc2963e2524ee2a2bc7'";
 
-        $data.=", date_time=NOW()";
-        $data.=", type='offices'";
-        $data.=", password='4052e09931ceddc2963e2524ee2a2bc7'";
+    $sql = "INSERT INTO $table SET $data";
 
+    if ($conn->query($sql) === TRUE) {
+        $last_id = $conn->insert_id;
 
-        $sql = "INSERT INTO $table SET $data";
+        $error='<!--begin::Alert-->
+        <div class="alert alert-success d-flex align-items-center p-5 alert-dismissible fade show" role="alert" id="autoCloseAlertAdd">
+            <!--begin::Icon-->
+            <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+            <!--end::Icon-->
 
-        if ($conn->query($sql) === TRUE) {
-             $last_id = $conn->insert_id;
+            <!--begin::Wrapper-->
+            <div class="d-flex flex-column">
+                <!--begin::Title-->
+                <h4 class="mb-1 text-success">Success</h4>
+                <!--end::Title-->
 
+                <!--begin::Content-->
+                <span>New data has been recorded</span>
+                <!--end::Content-->
+            </div>
+            <!--end::Wrapper-->
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <!--end::Alert-->';
 
-
-            $error='<!--begin::Alert-->
-			<div class="alert alert-success d-flex align-items-center p-5">
-			    <!--begin::Icon-->
-			    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
-			    <!--end::Icon-->
-
-			    <!--begin::Wrapper-->
-			    <div class="d-flex flex-column">
-			        <!--begin::Title-->
-			        <h4 class="mb-1 text-success">Success</h4>
-			        <!--end::Title-->
-
-			        <!--begin::Content-->
-			        <span>New data has been recorded</span>
-			        <!--end::Content-->
-			    </div>
-			    <!--end::Wrapper-->
-			</div>
-			<!--end::Alert-->';
-        } else {
-          echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-	}
-
+        // Add JavaScript for auto-close functionality
+        $error .= '<script>
+            setTimeout(function() {
+                var alertElement = document.getElementById("autoCloseAlertAdd");
+                if (alertElement) {
+                    var alert = new bootstrap.Alert(alertElement);
+                    alert.close();
+                }
+            }, 5000); // Auto close after 5 seconds
+        </script>';
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
+// UPDATE
 	if(isset($_POST['update'])){
 		extract($_POST);
-        $data="";
-
-        foreach ($_POST as $k => $v){
-
-            if(empty($data)){
-                $data .= " $k='$v' ";
-            }else{
-                if($k=="update"){
-                    $data .= "";
-                }else{
-                    $data .= ", $k='$v' ";
-                }
-                
-            }
-        }
-
-        
-
-        $data;
-
-        // $data.=", date_time=NOW()";
-
-        $sql = "UPDATE $table SET $data WHERE id='$id'";
-
-        if ($conn->query($sql) === TRUE) {
-             $last_id = $conn->insert_id;
-
-
-
-            $error='<!--begin::Alert-->
-			<div class="alert alert-info d-flex align-items-center p-5">
-			    <!--begin::Icon-->
-			    <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
-			    <!--end::Icon-->
-
-			    <!--begin::Wrapper-->
-			    <div class="d-flex flex-column">
-			        <!--begin::Title-->
-			        <h4 class="mb-1 text-info">Update Complete</h4>
-			        <!--end::Title-->
-
-			        <!--begin::Content-->
-			        <span>Data has been updated</span>
-			        <!--end::Content-->
-			    </div>
-			    <!--end::Wrapper-->
+		$data="";
+	
+		foreach ($_POST as $k => $v){
+			if(empty($data)){
+				$data .= " $k='$v' ";
+			}else{
+				if($k=="update"){
+					$data .= "";
+				}else{
+					$data .= ", $k='$v' ";
+				}
+			}
+		}
+	
+		$data;
+	
+		// $data.=", date_time=NOW()";
+	
+		$sql = "UPDATE $table SET $data WHERE id='$id'";
+	
+		if ($conn->query($sql) === TRUE) {
+			$last_id = $conn->insert_id;
+	
+			$error='<!--begin::Alert-->
+			<div class="alert alert-info d-flex align-items-center p-5 alert-dismissible fade show" role="alert" id="autoCloseAlert">
+				<!--begin::Icon-->
+				<i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
+				<!--end::Icon-->
+	
+				<!--begin::Wrapper-->
+				<div class="d-flex flex-column">
+					<!--begin::Title-->
+					<h4 class="mb-1 text-info">Update Complete</h4>
+					<!--end::Title-->
+	
+					<!--begin::Content-->
+					<span>Data has been updated</span>
+					<!--end::Content-->
+				</div>
+				<!--end::Wrapper-->
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 			</div>
 			<!--end::Alert-->';
-        } else {
-          echo "Error: " . $sql . "<br>" . $conn->error;
-        }
+	
+			// Add JavaScript for auto-close functionality
+			$error .= '<script>
+				setTimeout(function() {
+					var alertElement = document.getElementById("autoCloseAlert");
+					if (alertElement) {
+						var alert = new bootstrap.Alert(alertElement);
+						alert.close();
+					}
+				}, 5000); // Auto close after 5 seconds
+			</script>';
+		} else {
+			echo "Error: " . $sql . "<br>" . $conn->error;
+		}
 	}
 
 // Delete function
-	if(isset($_POST['delete'])){
-		extract($_POST);
-        $data="";
+if(isset($_POST['delete'])){
+    extract($_POST);
+    $data="";
 
-        foreach ($_POST as $k => $v){
-
-            if(empty($data)){
-                $data .= " $k='$v' ";
+    foreach ($_POST as $k => $v){
+        if(empty($data)){
+            $data .= " $k='$v' ";
+        }else{
+            if($k=="delete"){
+                $data .= "";
             }else{
-                if($k=="delete"){
-                    $data .= "";
-                }else{
-                    $data .= ", $k='$v' ";
-                }
-                
+                $data .= ", $k='$v' ";
             }
         }
+    }
 
-        
+    $data;
 
-        $data;
+    // $data.=", date_time=NOW()";
 
-        // $data.=", date_time=NOW()";
+    $sql = "DELETE FROM $table WHERE id='$id'";
 
+    if ($conn->query($sql) === TRUE) {
+        $last_id = $conn->insert_id;
 
-        $sql = "DELETE FROM $table WHERE id='$id'";
+        $error='<!--begin::Alert-->
+        <div class="alert alert-danger d-flex align-items-center p-5 alert-dismissible fade show" role="alert" id="autoCloseAlertDelete">
+            <!--begin::Icon-->
+            <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+            <!--end::Icon-->
 
-        if ($conn->query($sql) === TRUE) {
-             $last_id = $conn->insert_id;
+            <!--begin::Wrapper-->
+            <div class="d-flex flex-column">
+                <!--begin::Title-->
+                <h4 class="mb-1 text-danger">Delete Complete</h4>
+                <!--end::Title-->
 
+                <!--begin::Content-->
+                <span>Data has been deleted successfully</span>
+                <!--end::Content-->
+            </div>
+            <!--end::Wrapper-->
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <!--end::Alert-->';
 
-
-            $error='<!--begin::Alert-->
-			<div class="alert alert-danger d-flex align-items-center p-5">
-			    <!--begin::Icon-->
-			    <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
-			    <!--end::Icon-->
-
-			    <!--begin::Wrapper-->
-			    <div class="d-flex flex-column">
-			        <!--begin::Title-->
-			        <h4 class="mb-1 text-danger">Delete Complete</h4>
-			        <!--end::Title-->
-
-			        <!--begin::Content-->
-			        <span>Data has been delete successfully</span>
-			        <!--end::Content-->
-			    </div>
-			    <!--end::Wrapper-->
-			</div>
-			<!--end::Alert-->';
-        } else {
-          echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-	}
+        // Add JavaScript for auto-close functionality
+        $error .= '<script>
+            setTimeout(function() {
+                var alertElement = document.getElementById("autoCloseAlertDelete");
+                if (alertElement) {
+                    var alert = new bootstrap.Alert(alertElement);
+                    alert.close();
+                }
+            }, 5000); // Auto close after 5 seconds
+        </script>';
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
 
 
 ?>
@@ -221,7 +228,9 @@ $error="";
 	    <thead>
 	        <tr class="fw-bold fs-6 text-gray-800 px-7">
 	        	<th>Email</th>
-	            <th>Name</th>
+				<th>Firstname</th>
+				<th>Lastname</th>
+	            <th>Office</th>
 	            <th>Description</th>
 	            <th>Action</th>
 	        </tr>
@@ -238,11 +247,13 @@ $error="";
 				    ?>
 				 	<tr>
 				 		<td><?php echo$email?></td>
+						 <td><?php echo$firstname?></td>
+						 <td><?php echo$lastname?></td>
 				 		<td><?php echo$name?></td>
 				 		<td><?php echo$description?></td>
 				 		<td>
-				 			<a class="btn btn-light-danger btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_3" onclick="deleting('<?php echo$id?>','<?php echo$email?>','<?php echo$name?>','<?php echo$description?>');"><i class="bi bi-trash"></i></a>
-				 			<a class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_2" onclick="edit('<?php echo$id?>','<?php echo$name?>','<?php echo$description?>');"><i class="bi bi-pencil"></i>Edit</a>
+				 			<a class="btn btn-light-danger btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_3" onclick="deleting('<?php echo$id?>','<?php echo$email?>','<?php echo$firstname?>','<?php echo$lastname?>','<?php echo$name?>','<?php echo$description?>');"><i class="bi bi-trash"></i></a>
+							<a class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kt_modal_2" onclick="edit('<?php echo$id?>','<?php echo$email?>','<?php echo$firstname?>','<?php echo$lastname?>','<?php echo$name?>','<?php echo$description?>');"><i class="bi bi-pencil"></i>Edit</a>
 				 			<a class="btn btn-light-success btn-sm" href="?page=signatory_list&offices_id=<?php echo$id?>"><i class="bi bi-check"></i>Signatory List</a>
 				 		</td>
 				 	</tr>
@@ -279,20 +290,24 @@ $error="";
 	 setTimeout(function() {
 	 	table();
 	 }, 1000);
-
-	 function edit(id,email,name,description){
+// EDIT FUNCTION
+	 function edit(id,email,firstname,lastname,name,description){
 	 	var form = document.edit_form;
 
 	 	form.id.value=id;
 	 	form.email.value=email;
+		 form.firstname.value=firstname;
+		 form.lastname.value=lastname;
 	 	form.name.value=name;
 	 	form.description.value=description;
 	 }
-
-	 function deleting(id,name,description){
+// DELETE FUNCTION
+	 function deleting(id,name,firstname,lastname,description){
 	 	var form = document.delete_form;
 
 	 	form.id.value=id;
+		form.firstname.value=firstname;
+		form.lastname.value=lastname;
 	 	form.name.value=name;
 	 	form.description.value=description;
 	 }
@@ -310,10 +325,12 @@ $error="";
                 </div>
                 <!--end::Close-->
             </div>
-
+<!-- INSERT -->
             <form method="POST">
             	<div class="modal-body">
             		<input class="form-control" type="" name="email" placeholder="Email" required><br>
+					<input class="form-control" type="" name="firstname" placeholder="Firstname" required><br>
+              		<input class="form-control" type="" name="lastname" placeholder="Lastname" required><br>
               		<input class="form-control" type="" name="name" placeholder="Name" required><br>
               		<input class="form-control" type="" name="description" placeholder="Description" required><br>
 	            </div>
@@ -338,12 +355,14 @@ $error="";
                 </div>
                 <!--end::Close-->
             </div>
-
+<!-- EDIT -->
             <form method="POST" name="edit_form">
             	<div class="modal-body">
             		<input type="hidden" name="id">
             		<input class="form-control" type="" name="email" placeholder="Email" required><br>
-              		<input class="form-control" type="" name="name" placeholder="Name" required><br>
+					<input class="form-control" type="" name="firstname" placeholder="Firstname" required><br>
+              		<input class="form-control" type="" name="lastname" placeholder="Lastname" required><br>
+              		<input class="form-control" type="" name="name" placeholder="Office" required><br>
               		<input class="form-control" type="" name="description" placeholder="Description" required><br>
 	            </div>
 	            <div class="modal-footer">
@@ -360,14 +379,13 @@ $error="";
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Edit</h3>
-
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                     <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                 </div>
                 <!--end::Close-->
             </div>
-
+<!-- DELETE  -->
             <form method="POST" name="delete_form">
             	<div class="modal-body">
             		<center><label class="h1">Are you sure you want to delete?</label></center>

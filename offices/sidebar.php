@@ -50,7 +50,7 @@
 				<!-- Approved Tab -->
 				<div class="menu-item">
 					<!--begin:Menu link-->
-					<a class="menu-link" href="?page=signatory">
+					<a class="menu-link" href="?page=approved">
 						<span class="menu-bullet">
 							<span class="bullet bullet-dot"></span>
 						</span>

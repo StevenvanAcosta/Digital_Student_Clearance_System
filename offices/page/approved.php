@@ -49,7 +49,7 @@
 				        <!--end::Title-->
 
 				        <!--begin::Content-->
-				        <span>Student has been approved already</span>
+				        <span>Signatory has been approved already</span>
 				        <!--end::Content-->
 				    </div>
 				    <!--end::Wrapper-->
@@ -96,7 +96,7 @@
 
 <div class="container">
 	<?php echo$error?>
-	<!-- Signatory Table -->
+    <h1>Approved</h1>
 	<table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
 	    <thead>
 	        <tr class="fw-bold fs-6 text-gray-800 px-7">
