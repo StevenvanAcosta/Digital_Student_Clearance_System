@@ -1,192 +1,179 @@
 <?php
-	$table='signatory_list';
-	$error="";
+$table = 'signatory_list';
+$error = "";
 
-	if(isset($_GET['msg'])){
-		if($_GET['msg']=="sent"){
-			$error='<!--begin::Alert-->
-				<div class="alert alert-info d-flex align-items-center p-5">
-				    <!--begin::Icon-->
-				    <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
-				    <!--end::Icon-->
+// Check for messages
+if (isset($_GET['msg'])) {
+    if ($_GET['msg'] == "sent") {
+        $error = '<!--begin::Alert-->
+            <div class="alert alert-info d-flex align-items-center p-5">
+                <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
+                <div class="d-flex flex-column">
+                    <h4 class="mb-1 text-info">Success</h4>
+                    <span>Mail has been sent</span>
+                </div>
+            </div>
+            <!--end::Alert-->';
+    }
+}
 
-				    <!--begin::Wrapper-->
-				    <div class="d-flex flex-column">
-				        <!--begin::Title-->
-				        <h4 class="mb-1 text-info">Success</h4>
-				        <!--end::Title-->
+// Approve or Pending action
+if (isset($_GET['approve']) || isset($_GET['pending'])) {
+    extract($_GET);
 
-				        <!--begin::Content-->
-				        <span>Mail has been send</span>
-				        <!--end::Content-->
-				    </div>
-				    <!--end::Wrapper-->
-				</div>
-				<!--end::Alert-->';
-		}
-	}
+    // Determine the status based on the clicked button
+    if (isset($approve)) {
+        $status = 'approve';
+        $student_id = $approve;
+    } elseif (isset($pending)) {
+        $status = 'Pending';
+        $student_id = $pending;
+    }
 
-	if(isset($_GET['approve'])){
-		extract($_GET);
+    // Check if the record already exists
+    $sql = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
+    $result = $conn->query($sql);
 
-		$sql = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$approve'";
-		$result = $conn->query($sql);
-
-		if ($result->num_rows > 0) {
-		  // output data of each row
-		  while($row = $result->fetch_assoc()) {
-
-		  	$error='<!--begin::Alert-->
-				<div class="alert alert-warning d-flex align-items-center p-5">
-				    <!--begin::Icon-->
-				    <i class="ki-duotone ki-shield-tick fs-2hx text-warning me-4"><span class="path1"></span><span class="path2"></span></i>
-				    <!--end::Icon-->
-
-				    <!--begin::Wrapper-->
-				    <div class="d-flex flex-column">
-				        <!--begin::Title-->
-				        <h4 class="mb-1 text-warning">Approval</h4>
-				        <!--end::Title-->
-
-				        <!--begin::Content-->
-				        <span>Student has been approved already</span>
-				        <!--end::Content-->
-				    </div>
-				    <!--end::Wrapper-->
-				</div>
-				<!--end::Alert-->';
-		    	
-		  }
-		} else {
-		  	$sql = "INSERT INTO signatory SET signatory_list_id='$user_id', student_id='$approve', date_created=NOW(), status='approve'";
-
-	        if ($conn->query($sql) === TRUE) {
-	             $last_id = $conn->insert_id;
-
-
-
-	            $error='<!--begin::Alert-->
-				<div class="alert alert-success d-flex align-items-center p-5">
-				    <!--begin::Icon-->
-				    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
-				    <!--end::Icon-->
-
-				    <!--begin::Wrapper-->
-				    <div class="d-flex flex-column">
-				        <!--begin::Title-->
-				        <h4 class="mb-1 text-success">Success</h4>
-				        <!--end::Title-->
-
-				        <!--begin::Content-->
-				        <span>Signatory has been approved</span>
-				        <!--end::Content-->
-				    </div>
-				    <!--end::Wrapper-->
-				</div>
-				<!--end::Alert-->';
-	        } else {
-	          echo "Error: " . $sql . "<br>" . $conn->error;
-	        }
-		}
-
-		
-	}
+    if ($result->num_rows > 0) {
+        // If record exists, update the status
+        $sql = "UPDATE signatory SET status='$status' WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
+        if ($conn->query($sql) === TRUE) {
+            $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
+            $error = '<!--begin::Alert-->
+                <div class="alert alert-success d-flex align-items-center p-5">
+                    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+                    <div class="d-flex flex-column">
+                        <h4 class="mb-1 text-success">Success</h4>
+                        <span>' . $message . '</span>
+                    </div>
+                </div>
+                <!--end::Alert-->';
+        } else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
+        }
+    } else {
+        // If no record exists, insert a new record with the selected status
+        $sql = "INSERT INTO signatory SET signatory_list_id='$user_id', student_id='$student_id', date_created=NOW(), status='$status'";
+        if ($conn->query($sql) === TRUE) {
+            $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
+            $error = '<!--begin::Alert-->
+                <div class="alert alert-success d-flex align-items-center p-5">
+                    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+                    <div class="d-flex flex-column">
+                        <h4 class="mb-1 text-success">Success</h4>
+                        <span>' . $message . '</span>
+                    </div>
+                </div>
+                <!--end::Alert-->';
+        } else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
+        }
+    }
+}
 
 ?>
 
 <div class="container">
-	<?php echo$error?>
-	<!-- Signatory Table -->
-	<table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
-	    <thead>
-	        <tr class="fw-bold fs-6 text-gray-800 px-7">
-	            <th>Name</th>
-	            <th>Program</th>
-	            <th>Status</th>
-	            <th>Action</th>
-	        </tr>
-	    </thead>
-	    <tbody>
-	    	<?php
-	    		$sql = "SELECT t.*,
-	    		(SELECT name FROM courses WHERE id=t.courses_id LIMIT 1) AS name,
-	    		(SELECT year_level FROM courses WHERE id=t.courses_id LIMIT 1) AS year_level,
-	    		(SELECT section FROM courses WHERE id=t.courses_id LIMIT 1) AS section
-	    		 FROM $table t WHERE offices_id='$user_id'";
-				$result = $conn->query($sql);
+    <?php echo $error ?>
+    <!-- Signatory Table -->
+    <table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
+        <thead>
+            <tr class="fw-bold fs-6 text-gray-800 px-7">
+                <th><input type="checkbox" id="select-all"></th> <!-- Select All checkbox -->
+                <th>Name</th>
+                <th>Program</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $sql = "SELECT t.*,
+                (SELECT name FROM courses WHERE id=t.courses_id LIMIT 1) AS name,
+                (SELECT year_level FROM courses WHERE id=t.courses_id LIMIT 1) AS year_level,
+                (SELECT section FROM courses WHERE id=t.courses_id LIMIT 1) AS section
+                FROM $table t WHERE offices_id='$user_id'";
+            $result = $conn->query($sql);
 
-				if ($result->num_rows > 0) {
-				  // output data of each row
-				  while($row = $result->fetch_assoc()) {
-				  	extract($row);
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    extract($row);
+                    $sql1 = "SELECT * FROM student WHERE courses='$name' AND year_level='$year_level' AND section='$section'";
+                    $result1 = $conn->query($sql1);
 
-				  	$sql1 = "SELECT * FROM student WHERE courses='$name' AND year_level='$year_level' AND section='$section'";
-					$result1 = $conn->query($sql1);
+                    if ($result1->num_rows > 0) {
+                        while ($row1 = $result1->fetch_assoc()) {
+                            extract($row1);
+                            $sql2 = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$id'";
+                            $result2 = $conn->query($sql2);
 
-					if ($result1->num_rows > 0) {
-					  // output data of each row
-					  while($row1 = $result1->fetch_assoc()) {
-					  	extract($row1);
-
-					  	$sql2 = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$id'";
-						$result2 = $conn->query($sql2);
-
-						if ($result2->num_rows > 0) {
-						  	$status='Approved';
-						}else{
-							$status='Pending';
-						}
-					  	?>
-					  	<tr>
-					  		<td><?php echo$firstname?> <?php echo$lastname?></td>
-					  		<td><?php echo$name?> <?php echo$year_level?><?php echo$section?></td>
-					  		<td><?php echo$status?></td>
-					  		<td>
-					  			<a class="btn btn-light-success btn-sm" href="?page=<?php echo$page?>&approve=<?php echo$id?>">Approve</a>
-					  			<a class="btn btn-light-info btn-sm" onclick="mails('<?php echo$email?>');"  data-bs-toggle="modal" data-bs-target="#kt_modal_2"><i class="bi bi-send"></i> Mail</a>
-					  		</td>
-					  	</tr>
-					  	<?php
-					  	
-					    
-					  }
-					}
-				    
-				  }
-				}
-	    	?>
-	    </tbody>
-	</table>
+                            if ($result2->num_rows > 0) {
+                                $status = $result2->fetch_assoc()['status']; // Fetch current status
+                            } else {
+                                $status = 'Pending';
+                            }
+                            ?>
+                            <tr>
+                                <td><input type="checkbox" class="select-student" value="<?php echo $id; ?>"></td> <!-- Individual selection checkbox -->
+                                <td><?php echo $firstname ?> <?php echo $lastname ?></td>
+                                <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
+                                <td><?php echo $status ?></td>
+                                <td>
+                                    <a class="btn btn-light-success btn-sm" href="?page=<?php echo $page ?>&approve=<?php echo $id ?>">Approve</a>
+                                    <a class="btn btn-light-warning btn-sm" href="?page=<?php echo $page ?>&pending=<?php echo $id ?>">Pending</a>
+                                    <a class="btn btn-light-info btn-sm" onclick="mails('<?php echo $email ?>');" data-bs-toggle="modal" data-bs-target="#kt_modal_2"><i class="bi bi-send"></i> Mail</a>
+                                </td>
+                            </tr>
+                            <?php
+                        }
+                    }
+                }
+            }
+            ?>
+        </tbody>
+    </table>
+    <button id="approve-selected" class="btn btn-success">Approve Selected</button>
+    <button id="pending-selected" class="btn btn-warning">Set Pending Selected</button>
 </div>
 
 <script type="text/javascript">
-	function table(){
-		$("#kt_datatable_dom_positioning").DataTable({
-			"language": {
-				"lengthMenu": "Show _MENU_",
-			},
-			"dom":
-				"<'row mb-2'" +
-				"<'col-sm-6 d-flex align-items-center justify-conten-start dt-toolbar'l>" +
-				"<'col-sm-6 d-flex align-items-center justify-content-end dt-toolbar'f>" +
-				">" +
+    // Select All functionality
+    document.getElementById('select-all').addEventListener('change', function() {
+        let checkboxes = document.querySelectorAll('.select-student');
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    });
 
-				"<'table-responsive'tr>" +
+    // Approve selected students
+    document.getElementById('approve-selected').addEventListener('click', function() {
+        let selectedIds = [];
+        document.querySelectorAll('.select-student:checked').forEach(checkbox => {
+            selectedIds.push(checkbox.value);
+        });
 
-				"<'row'" +
-				"<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
-				"<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
-				">"
-		});
-	}
-	
+        if (selectedIds.length > 0) {
+            window.location.href = '?page=<?php echo $page ?>&approve=' + selectedIds.join(',');
+        } else {
+            alert('Please select at least one student.');
+        }
+    });
 
-	 setTimeout(function() {
-	 	table();
-	 }, 1000);
-	 function mails(email){
-	 	document.sendmail.email.value=email;
-	 }
+    // Set selected students to pending
+    document.getElementById('pending-selected').addEventListener('click', function() {
+        let selectedIds = [];
+        document.querySelectorAll('.select-student:checked').forEach(checkbox => {
+            selectedIds.push(checkbox.value);
+        });
+
+        if (selectedIds.length > 0) {
+            window.location.href = '?page=<?php echo $page ?>&pending=' + selectedIds.join(',');
+        } else {
+            alert('Please select at least one student.');
+        }
+    });
+
+    function mails(email) {
+        document.sendmail.email.value = email;
+    }
 </script>
 
 <div class="modal fade" tabindex="-1" id="kt_modal_2">
@@ -194,24 +181,21 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Mailing</h3>
-
-                <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                     <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                 </div>
-                <!--end::Close-->
             </div>
 
             <form method="GET" action="../send-mail.php" name="sendmail">
-            	<div class="modal-body">
-            		<input type="hidden" name="email">
-            		<input type="hidden" name="offices" value="<?php echo$user_name?>">
-            		<textarea class="form-control" placeholder="Please type here" name="msg" required></textarea>
-	            </div>
-	            <div class="modal-footer">
-	                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
-	                <button type="submit" class="btn btn-info btn-sm" name="send"><i class="bi bi-send"></i>Send</button>
-	            </div>
+                <div class="modal-body">
+                    <input type="hidden" name="email">
+                    <input type="hidden" name="offices" value="<?php echo $user_name ?>">
+                    <textarea class="form-control" placeholder="Please type here" name="msg" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-info btn-sm" name="send"><i class="bi bi-send"></i>Send</button>
+                </div>
             </form>
         </div>
     </div>
