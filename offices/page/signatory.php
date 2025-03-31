@@ -24,53 +24,54 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
     // Determine the status based on the clicked button
     if (isset($approve)) {
         $status = 'approve';
-        $student_id = $approve;
+        $student_ids = explode(',', $approve);  // Multiple student IDs
     } elseif (isset($pending)) {
         $status = 'Pending';
-        $student_id = $pending;
+        $student_ids = explode(',', $pending);  // Multiple student IDs
     }
 
-    // Check if the record already exists
-    $sql = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
-    $result = $conn->query($sql);
+    foreach ($student_ids as $student_id) {
+        // Check if the record already exists
+        $sql = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
+        $result = $conn->query($sql);
 
-    if ($result->num_rows > 0) {
-        // If record exists, update the status
-        $sql = "UPDATE signatory SET status='$status' WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
-        if ($conn->query($sql) === TRUE) {
-            $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
-            $error = '<!--begin::Alert-->
-                <div class="alert alert-success d-flex align-items-center p-5">
-                    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
-                    <div class="d-flex flex-column">
-                        <h4 class="mb-1 text-success">Success</h4>
-                        <span>' . $message . '</span>
+        if ($result->num_rows > 0) {
+            // If record exists, update the status
+            $sql = "UPDATE signatory SET status='$status' WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
+            if ($conn->query($sql) === TRUE) {
+                $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
+                $error = '<!--begin::Alert-->
+                    <div class="alert alert-success d-flex align-items-center p-5">
+                        <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+                        <div class="d-flex flex-column">
+                            <h4 class="mb-1 text-success">Success</h4>
+                            <span>' . $message . '</span>
+                        </div>
                     </div>
-                </div>
-                <!--end::Alert-->';
+                    <!--end::Alert-->';
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error;
+            }
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-    } else {
-        // If no record exists, insert a new record with the selected status
-        $sql = "INSERT INTO signatory SET signatory_list_id='$user_id', student_id='$student_id', date_created=NOW(), status='$status'";
-        if ($conn->query($sql) === TRUE) {
-            $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
-            $error = '<!--begin::Alert-->
-                <div class="alert alert-success d-flex align-items-center p-5">
-                    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
-                    <div class="d-flex flex-column">
-                        <h4 class="mb-1 text-success">Success</h4>
-                        <span>' . $message . '</span>
+            // If no record exists, insert a new record with the selected status
+            $sql = "INSERT INTO signatory SET signatory_list_id='$user_id', student_id='$student_id', date_created=NOW(), status='$status'";
+            if ($conn->query($sql) === TRUE) {
+                $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
+                $error = '<!--begin::Alert-->
+                    <div class="alert alert-success d-flex align-items-center p-5">
+                        <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+                        <div class="d-flex flex-column">
+                            <h4 class="mb-1 text-success">Success</h4>
+                            <span>' . $message . '</span>
+                        </div>
                     </div>
-                </div>
-                <!--end::Alert-->';
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+                    <!--end::Alert-->';
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error;
+            }
         }
     }
 }
-
 ?>
 
 <div class="container">
@@ -119,8 +120,8 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
                                 <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
                                 <td><?php echo $status ?></td>
                                 <td>
-                                    <a class="btn btn-light-success btn-sm" href="?page=<?php echo $page ?>&approve=<?php echo $id ?>">Approve</a>
-                                    <a class="btn btn-light-warning btn-sm" href="?page=<?php echo $page ?>&pending=<?php echo $id ?>">Pending</a>
+                                    <a class="btn btn-light-success btn-sm approve-btn" href="javascript:void(0);" data-id="<?php echo $id ?>">Approve</a>
+                                    <a class="btn btn-light-warning btn-sm pending-btn" href="javascript:void(0);" data-id="<?php echo $id ?>">Pending</a>
                                     <a class="btn btn-light-info btn-sm" onclick="mails('<?php echo $email ?>');" data-bs-toggle="modal" data-bs-target="#kt_modal_2"><i class="bi bi-send"></i> Mail</a>
                                 </td>
                             </tr>
@@ -132,8 +133,6 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
             ?>
         </tbody>
     </table>
-    <button id="approve-selected" class="btn btn-success">Approve Selected</button>
-    <button id="pending-selected" class="btn btn-warning">Set Pending Selected</button>
 </div>
 
 <script type="text/javascript">
@@ -144,31 +143,35 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
     });
 
     // Approve selected students
-    document.getElementById('approve-selected').addEventListener('click', function() {
-        let selectedIds = [];
-        document.querySelectorAll('.select-student:checked').forEach(checkbox => {
-            selectedIds.push(checkbox.value);
-        });
+    document.querySelectorAll('.approve-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            let selectedIds = [];
+            document.querySelectorAll('.select-student:checked').forEach(checkbox => {
+                selectedIds.push(checkbox.value);
+            });
 
-        if (selectedIds.length > 0) {
-            window.location.href = '?page=<?php echo $page ?>&approve=' + selectedIds.join(',');
-        } else {
-            alert('Please select at least one student.');
-        }
+            if (selectedIds.length > 0) {
+                window.location.href = '?page=<?php echo $page ?>&approve=' + selectedIds.join(',');
+            } else {
+                alert('Please select at least one student to approve.');
+            }
+        });
     });
 
     // Set selected students to pending
-    document.getElementById('pending-selected').addEventListener('click', function() {
-        let selectedIds = [];
-        document.querySelectorAll('.select-student:checked').forEach(checkbox => {
-            selectedIds.push(checkbox.value);
-        });
+    document.querySelectorAll('.pending-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            let selectedIds = [];
+            document.querySelectorAll('.select-student:checked').forEach(checkbox => {
+                selectedIds.push(checkbox.value);
+            });
 
-        if (selectedIds.length > 0) {
-            window.location.href = '?page=<?php echo $page ?>&pending=' + selectedIds.join(',');
-        } else {
-            alert('Please select at least one student.');
-        }
+            if (selectedIds.length > 0) {
+                window.location.href = '?page=<?php echo $page ?>&pending=' + selectedIds.join(',');
+            } else {
+                alert('Please select at least one student to set as pending.');
+            }
+        });
     });
 
     function mails(email) {
