@@ -5,17 +5,19 @@
 
 <div class="container">
     <?php echo $error; ?>
+    <!-- Student -->
     <table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
         <thead>
             <tr class="fw-bold fs-6 text-gray-800 px-7">
                 <th>Offices</th>
                 <th>Status</th>
-                <th>Signatory</th>  <!-- Column 3 -->
+                <th>Signatory</th>
+                <!-- <th>Upload</th> -->
             </tr>
         </thead>
         <tbody>
             <?php
-                $sql = "SELECT t.*
+                $sql = "SELECT t.* 
                         FROM $table t 
                         WHERE name='$courses' 
                         AND year_level='$year_level' 
@@ -26,8 +28,10 @@
                     while ($row = $result->fetch_assoc()) {
                         extract($row);
 
-                        $sql = "SELECT sl.*,
-                               (SELECT name FROM offices WHERE id=sl.offices_id) AS offices
+                        $sql = "SELECT sl.*, 
+                                       (SELECT name FROM offices WHERE id=sl.offices_id) AS offices,
+                                       (SELECT firstname FROM offices WHERE id=sl.offices_id) AS signatory_firstname,
+                                       (SELECT lastname FROM offices WHERE id=sl.offices_id) AS signatory_lastname
                                 FROM signatory_list sl 
                                 WHERE courses_id='$id'";
                         $result = $conn->query($sql);
@@ -41,12 +45,12 @@
 
                                 $status = ($result2->num_rows > 0) ? 'Approve' : 'Pending';
 
-                                // Add the missing 'Signatory' column here
+                                // Display signatory's firstname and lastname
                                 ?>
                                 <tr>
                                     <td><?php echo $offices; ?></td>
                                     <td><?php echo $status; ?></td>
-                                    <td><?php echo $user_id; ?></td> <!-- Added missing Signatory -->
+                                    <td><?php echo $signatory_firstname . ' ' . $signatory_lastname; ?></td> <!-- Signatory's full name -->
                                 </tr>
                                 <?php
                             }
@@ -68,7 +72,7 @@
                 "<'row mb-2'" +
                 "<'col-sm-6 d-flex align-items-center justify-content-start dt-toolbar'l>" +
                 "<'col-sm-6 d-flex align-items-center justify-content-end dt-toolbar'f>" +
-                ">" +
+                ">" + 
 
                 "<'table-responsive'tr>" +
 

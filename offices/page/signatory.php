@@ -1,3 +1,24 @@
+<div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+	<!--begin::Toolbar container-->
+	<div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
+		<!--begin::Page title-->
+		<div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+			<!--begin::Title-->
+			<h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">Manage</h1>
+			<!--end::Title-->
+			<!--begin::Breadcrumb-->
+			<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+				<!--begin::Item-->
+				<li class="breadcrumb-item text-muted"><?php echo ucfirst(str_replace(' ', '_', $page)) ;?></li>
+				<!--end::Item-->
+			</ul>
+			<!--end::Breadcrumb-->
+		</div>
+		<!--end::Page title-->
+	</div>
+	<!--end::Toolbar container-->
+</div>
+
 <?php
 $table = 'signatory_list';
 $error = "";
@@ -6,12 +27,13 @@ $error = "";
 if (isset($_GET['msg'])) {
     if ($_GET['msg'] == "sent") {
         $error = '<!--begin::Alert-->
-            <div class="alert alert-info d-flex align-items-center p-5">
+            <div class="alert alert-info alert-dismissible fade show p-5" id="auto-close-alert">
                 <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
                 <div class="d-flex flex-column">
                     <h4 class="mb-1 text-info">Success</h4>
                     <span>Mail has been sent</span>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <!--end::Alert-->';
     }
@@ -41,12 +63,13 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
             if ($conn->query($sql) === TRUE) {
                 $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
                 $error = '<!--begin::Alert-->
-                    <div class="alert alert-success d-flex align-items-center p-5">
+                    <div class="alert alert-success alert-dismissible fade show p-5" id="auto-close-alert">
                         <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
                         <div class="d-flex flex-column">
                             <h4 class="mb-1 text-success">Success</h4>
                             <span>' . $message . '</span>
                         </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                     <!--end::Alert-->';
             } else {
@@ -58,12 +81,13 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
             if ($conn->query($sql) === TRUE) {
                 $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
                 $error = '<!--begin::Alert-->
-                    <div class="alert alert-success d-flex align-items-center p-5">
+                    <div class="alert alert-success alert-dismissible fade show p-5" id="auto-close-alert">
                         <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
                         <div class="d-flex flex-column">
                             <h4 class="mb-1 text-success">Success</h4>
                             <span>' . $message . '</span>
                         </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                     <!--end::Alert-->';
             } else {
@@ -76,6 +100,13 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
 
 <div class="container">
     <?php echo $error ?>
+    
+    <!-- Search input -->
+    <div class="mb-3 d-flex justify-content-end">
+        <input type="text" id="searchInput" class="form-control w-25" placeholder="Search students...">
+    </div>
+
+
     <!-- Signatory Table -->
     <table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
         <thead>
@@ -87,7 +118,7 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
                 <th>Action</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="tableBody">
             <?php
             $sql = "SELECT t.*,
                 (SELECT name FROM courses WHERE id=t.courses_id LIMIT 1) AS name,
@@ -114,7 +145,7 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
                                 $status = 'Pending';
                             }
                             ?>
-                            <tr>
+                            <tr class="table-row">
                                 <td><input type="checkbox" class="select-student" value="<?php echo $id; ?>"></td> <!-- Individual selection checkbox -->
                                 <td><?php echo $firstname ?> <?php echo $lastname ?></td>
                                 <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
@@ -177,6 +208,37 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
     function mails(email) {
         document.sendmail.email.value = email;
     }
+
+    // Filter rows based on search input
+    document.getElementById('searchInput').addEventListener('input', function() {
+        let searchValue = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#tableBody .table-row');
+
+        rows.forEach(row => {
+            let name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            let program = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            let status = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+
+            if (name.includes(searchValue) || program.includes(searchValue) || status.includes(searchValue)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Auto close the alert after 3 seconds
+    document.addEventListener('DOMContentLoaded', function () {
+        var alert = document.getElementById('auto-close-alert');
+        if (alert) {
+            setTimeout(function () {
+                var closeButton = alert.querySelector('.btn-close');
+                if (closeButton) {
+                    closeButton.click();
+                }
+            }, 3000); // 3000 ms = 3 seconds
+        }
+    });
 </script>
 
 <div class="modal fade" tabindex="-1" id="kt_modal_2">

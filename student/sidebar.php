@@ -30,7 +30,7 @@
 						<span class="path3"></span>
 					</i>
 				</span>
-				<span class="menu-title">Student</span>
+				<span class="menu-title">Profile</span>
 				<span class="menu-arrow"></span>
 			</span>
 			<!--end:Menu link-->
