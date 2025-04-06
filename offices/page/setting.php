@@ -5,7 +5,7 @@
 		extract($_POST);
 
 
-		$sql = "UPDATE $table SET name='$name',email='$email' WHERE id='$user_id'";
+		$sql = "UPDATE $table SET email='$email' WHERE id='$user_id'";
 
 		if ($conn->query($sql) === TRUE) {
 		  	if('d41d8cd98f00b204e9800998ecf8427e'==md5($c_password)){
@@ -119,7 +119,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <input type="text" name="name" class="form-control" placeholder="Name" value="<?php echo $name?>"><br>
+                <input type="text" name="name" class="form-control" placeholder="Name" disabled value="<?php echo $name?>"><br>
                 <input type="email" name="email" class="form-control" placeholder="Email" value="<?php echo $email?>">
             </div>
             <div class="card-footer">

@@ -1,244 +1,245 @@
-<div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
-	<!--begin::Toolbar container-->
-	<div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
-		<!--begin::Page title-->
-		<div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
-			<!--begin::Title-->
-			<h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">Manage</h1>
-			<!--end::Title-->
-			<!--begin::Breadcrumb-->
-			<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
-				<!--begin::Item-->
-				<li class="breadcrumb-item text-muted"><?php echo ucfirst(str_replace(' ', '_', $page)) ;?></li>
-				<!--end::Item-->
-			</ul>
-			<!--end::Breadcrumb-->
-		</div>
-		<!--end::Page title-->
-	</div>
-	<!--end::Toolbar container-->
-</div>
-
 <?php
-$table = 'signatory_list';
-$error = "";
+    $table = 'signatory_list';
+    $error = "";
 
-// Check for messages
-if (isset($_GET['msg'])) {
-    if ($_GET['msg'] == "sent") {
-        $error = '<!--begin::Alert-->
-            <div class="alert alert-info alert-dismissible fade show p-5" id="auto-close-alert">
-                <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
-                <div class="d-flex flex-column">
-                    <h4 class="mb-1 text-info">Success</h4>
-                    <span>Mail has been sent</span>
+    if (isset($_GET['msg'])) {
+        if ($_GET['msg'] == "sent") {
+            $error = '<!--begin::Alert-->
+                <div class="alert alert-info d-flex align-items-center p-5">
+                    <!--begin::Icon-->
+                    <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
+                    <!--end::Icon-->
+
+                    <!--begin::Wrapper-->
+                    <div class="d-flex flex-column">
+                        <!--begin::Title-->
+                        <h4 class="mb-1 text-info">Success</h4>
+                        <!--end::Title-->
+
+                        <!--begin::Content-->
+                        <span>Mail has been sent</span>
+                        <!--end::Content-->
+                    </div>
+                    <!--end::Wrapper-->
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <!--end::Alert-->';
-    }
-}
-
-// Approve or Pending action
-if (isset($_GET['approve']) || isset($_GET['pending'])) {
-    extract($_GET);
-
-    // Determine the status based on the clicked button
-    if (isset($approve)) {
-        $status = 'approve';
-        $student_ids = explode(',', $approve);  // Multiple student IDs
-    } elseif (isset($pending)) {
-        $status = 'Pending';
-        $student_ids = explode(',', $pending);  // Multiple student IDs
+                <!--end::Alert-->';
+        }
     }
 
-    foreach ($student_ids as $student_id) {
-        // Check if the record already exists
-        $sql = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
+    if (isset($_GET['approve'])) {
+        extract($_GET);
+
+        // Check if the student is already in the signatory table with the current user_id and student_id
+        $sql = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$approve'";
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
-            // If record exists, update the status
-            $sql = "UPDATE signatory SET status='$status' WHERE signatory_list_id='$user_id' AND student_id='$student_id'";
-            if ($conn->query($sql) === TRUE) {
-                $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
-                $error = '<!--begin::Alert-->
-                    <div class="alert alert-success alert-dismissible fade show p-5" id="auto-close-alert">
-                        <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
-                        <div class="d-flex flex-column">
-                            <h4 class="mb-1 text-success">Success</h4>
-                            <span>' . $message . '</span>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    <!--end::Alert-->';
+            // Student is already in the signatory table
+            $row = $result->fetch_assoc();
+            
+            if ($row['status'] != 'Approved') {
+                // Update the status to "Approved"
+                $sql_update = "UPDATE signatory SET status='Approved' WHERE signatory_list_id='$user_id' AND student_id='$approve'";
+                if ($conn->query($sql_update) === TRUE) {
+                    $error = '<div class="alert alert-success d-flex align-items-center p-5">
+                                <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+                                <div class="d-flex flex-column">
+                                    <h4 class="mb-1 text-success">Success</h4>
+                                    <span>Status has been updated to Approved.</span>
+                                </div>
+                            </div>';
+                } else {
+                    $error = '<div class="alert alert-danger d-flex align-items-center p-5">
+                                <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+                                <div class="d-flex flex-column">
+                                    <h4 class="mb-1 text-danger">Error</h4>
+                                    <span>Failed to update status to Approved.</span>
+                                </div>
+                            </div>';
+                }
             } else {
-                echo "Error: " . $sql . "<br>" . $conn->error;
+                // Student is already approved
+                $error = '<div class="alert alert-warning d-flex align-items-center p-5">
+                            <i class="ki-duotone ki-shield-tick fs-2hx text-warning me-4"><span class="path1"></span><span class="path2"></span></i>
+                            <div class="d-flex flex-column">
+                                <h4 class="mb-1 text-warning">Already Approved</h4>
+                                <span>This student is already marked as Approved.</span>
+                            </div>
+                        </div>';
             }
         } else {
-            // If no record exists, insert a new record with the selected status
-            $sql = "INSERT INTO signatory SET signatory_list_id='$user_id', student_id='$student_id', date_created=NOW(), status='$status'";
-            if ($conn->query($sql) === TRUE) {
-                $message = ($status === 'approve') ? 'Signatory has been approved' : 'Signatory has been set to pending';
-                $error = '<!--begin::Alert-->
-                    <div class="alert alert-success alert-dismissible fade show p-5" id="auto-close-alert">
-                        <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
-                        <div class="d-flex flex-column">
-                            <h4 class="mb-1 text-success">Success</h4>
-                            <span>' . $message . '</span>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    <!--end::Alert-->';
+            // If the student is not in the signatory table, insert a new entry with "Approved"
+            $sql_insert = "INSERT INTO signatory (signatory_list_id, student_id, date_created, status) 
+                           VALUES ('$user_id', '$approve', NOW(), 'Approved')";
+            if ($conn->query($sql_insert) === TRUE) {
+                $last_id = $conn->insert_id;
+                $error = '<div class="alert alert-success d-flex align-items-center p-5">
+                            <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+                            <div class="d-flex flex-column">
+                                <h4 class="mb-1 text-success">Success</h4>
+                                <span>Signatory has been approved</span>
+                            </div>
+                        </div>';
             } else {
-                echo "Error: " . $sql . "<br>" . $conn->error;
+                echo "Error: " . $sql_insert . "<br>" . $conn->error;
             }
         }
     }
-}
+
+    // Handle Pending Button
+    if (isset($_GET['pending'])) {
+        extract($_GET);
+
+        // Check if the student already has a record with Pending or Approved status
+        $sql_check = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$pending'";
+        $result_check = $conn->query($sql_check);
+
+        if ($result_check->num_rows > 0) {
+            // Update the status to Pending if it's not already "Pending"
+            $row = $result_check->fetch_assoc();
+            if ($row['status'] != 'Pending') {
+                $sql_update = "UPDATE signatory SET status='Pending' WHERE signatory_list_id='$user_id' AND student_id='$pending'";
+                if ($conn->query($sql_update) === TRUE) {
+                    $error = '<div class="alert alert-info d-flex align-items-center p-5">
+                                <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
+                                <div class="d-flex flex-column">
+                                    <h4 class="mb-1 text-info">Status Updated</h4>
+                                    <span>Student has been marked as Pending.</span>
+                                </div>
+                            </div>';
+                } else {
+                    $error = '<div class="alert alert-danger d-flex align-items-center p-5">
+                                <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+                                <div class="d-flex flex-column">
+                                    <h4 class="mb-1 text-danger">Error</h4>
+                                    <span>Failed to update status to Pending.</span>
+                                </div>
+                            </div>';
+                }
+            } else {
+                // Already Pending
+                $error = '<div class="alert alert-warning d-flex align-items-center p-5">
+                            <i class="ki-duotone ki-shield-tick fs-2hx text-warning me-4"><span class="path1"></span><span class="path2"></span></i>
+                            <div class="d-flex flex-column">
+                                <h4 class="mb-1 text-warning">Already Pending</h4>
+                                <span>This student is already in Pending status.</span>
+                            </div>
+                        </div>';
+            }
+        } else {
+            // No record found, insert a new record with Pending status
+            $sql_insert = "INSERT INTO signatory SET signatory_list_id='$user_id', student_id='$pending', date_created=NOW(), status='Pending'";
+            if ($conn->query($sql_insert) === TRUE) {
+                $error = '<div class="alert alert-info d-flex align-items-center p-5">
+                            <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span></i>
+                            <div class="d-flex flex-column">
+                                <h4 class="mb-1 text-info">Status Updated</h4>
+                                <span>Student has been marked as Pending.</span>
+                            </div>
+                        </div>';
+            } else {
+                $error = '<div class="alert alert-danger d-flex align-items-center p-5">
+                            <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+                            <div class="d-flex flex-column">
+                                <h4 class="mb-1 text-danger">Error</h4>
+                                <span>Failed to update status to Pending.</span>
+                            </div>
+                        </div>';
+            }
+        }
+    }
 ?>
 
 <div class="container">
     <?php echo $error ?>
-    
-    <!-- Search input -->
-    <div class="mb-3 d-flex justify-content-end">
-        <input type="text" id="searchInput" class="form-control w-25" placeholder="Search students...">
-    </div>
-
-
-    <!-- Signatory Table -->
+    <h1>Signatory</h1>
     <table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
         <thead>
             <tr class="fw-bold fs-6 text-gray-800 px-7">
-                <th><input type="checkbox" id="select-all"></th> <!-- Select All checkbox -->
                 <th>Name</th>
                 <th>Program</th>
                 <th>Status</th>
                 <th>Action</th>
             </tr>
         </thead>
-        <tbody id="tableBody">
+        <tbody>
             <?php
-            $sql = "SELECT t.*,
-                (SELECT name FROM courses WHERE id=t.courses_id LIMIT 1) AS name,
-                (SELECT year_level FROM courses WHERE id=t.courses_id LIMIT 1) AS year_level,
-                (SELECT section FROM courses WHERE id=t.courses_id LIMIT 1) AS section
-                FROM $table t WHERE offices_id='$user_id'";
-            $result = $conn->query($sql);
+                $sql = "SELECT t.*,
+                        (SELECT name FROM courses WHERE id=t.courses_id LIMIT 1) AS name,
+                        (SELECT year_level FROM courses WHERE id=t.courses_id LIMIT 1) AS year_level,
+                        (SELECT section FROM courses WHERE id=t.courses_id LIMIT 1) AS section
+                         FROM $table t WHERE offices_id='$user_id'";
+                $result = $conn->query($sql);
 
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    extract($row);
-                    $sql1 = "SELECT * FROM student WHERE courses='$name' AND year_level='$year_level' AND section='$section'";
-                    $result1 = $conn->query($sql1);
+                if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        extract($row);
 
-                    if ($result1->num_rows > 0) {
-                        while ($row1 = $result1->fetch_assoc()) {
-                            extract($row1);
-                            $sql2 = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$id'";
-                            $result2 = $conn->query($sql2);
+                        $sql1 = "SELECT * FROM student WHERE courses='$name' AND year_level='$year_level' AND section='$section'";
+                        $result1 = $conn->query($sql1);
 
-                            if ($result2->num_rows > 0) {
-                                $status = $result2->fetch_assoc()['status']; // Fetch current status
-                            } else {
-                                $status = 'Pending';
+                        if ($result1->num_rows > 0) {
+                            while ($row1 = $result1->fetch_assoc()) {
+                                extract($row1);
+
+                                $sql2 = "SELECT * FROM signatory WHERE signatory_list_id='$user_id' AND student_id='$id'";
+                                $result2 = $conn->query($sql2);
+
+                                if ($result2->num_rows > 0) {
+                                    $row2 = $result2->fetch_assoc();
+                                    $status = $row2['status']; // Use actual status from the database
+                                } else {
+                                    $status = 'Pending';
+                                }
+                                
+                                ?>
+                                <tr>
+                                    <td><?php echo $firstname ?> <?php echo $lastname ?></td>
+                                    <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
+                                    <td><?php echo $status ?></td>
+                                    <td>
+                                        <a class="btn btn-light-success btn-sm" href="?page=<?php echo $page ?>&approve=<?php echo $id ?>">Approve</a>
+                                        <a class="btn btn-light-warning btn-sm" href="?page=<?php echo $page ?>&pending=<?php echo $id ?>">Pending</a>
+                                        <a class="btn btn-light-info btn-sm" onclick="mails('<?php echo $email ?>');" data-bs-toggle="modal" data-bs-target="#kt_modal_2"><i class="bi bi-send"></i> Mail</a>
+                                    </td>
+                                </tr>
+                                <?php
                             }
-                            ?>
-                            <tr class="table-row">
-                                <td><input type="checkbox" class="select-student" value="<?php echo $id; ?>"></td> <!-- Individual selection checkbox -->
-                                <td><?php echo $firstname ?> <?php echo $lastname ?></td>
-                                <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
-                                <td><?php echo $status ?></td>
-                                <td>
-                                    <a class="btn btn-light-success btn-sm approve-btn" href="javascript:void(0);" data-id="<?php echo $id ?>">Approve</a>
-                                    <a class="btn btn-light-warning btn-sm pending-btn" href="javascript:void(0);" data-id="<?php echo $id ?>">Pending</a>
-                                    <a class="btn btn-light-info btn-sm" onclick="mails('<?php echo $email ?>');" data-bs-toggle="modal" data-bs-target="#kt_modal_2"><i class="bi bi-send"></i> Mail</a>
-                                </td>
-                            </tr>
-                            <?php
                         }
                     }
                 }
-            }
             ?>
         </tbody>
     </table>
 </div>
-
 <script type="text/javascript">
-    // Select All functionality
-    document.getElementById('select-all').addEventListener('change', function() {
-        let checkboxes = document.querySelectorAll('.select-student');
-        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
-    });
+	function table(){
+		$("#kt_datatable_dom_positioning").DataTable({
+			"language": {
+				"lengthMenu": "Show _MENU_",
+			},
+			"dom":
+				"<'row mb-2'" +
+				"<'col-sm-6 d-flex align-items-center justify-conten-start dt-toolbar'l>" +
+				"<'col-sm-6 d-flex align-items-center justify-content-end dt-toolbar'f>" +
+				">" +
 
-    // Approve selected students
-    document.querySelectorAll('.approve-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            let selectedIds = [];
-            document.querySelectorAll('.select-student:checked').forEach(checkbox => {
-                selectedIds.push(checkbox.value);
-            });
+				"<'table-responsive'tr>" +
 
-            if (selectedIds.length > 0) {
-                window.location.href = '?page=<?php echo $page ?>&approve=' + selectedIds.join(',');
-            } else {
-                alert('Please select at least one student to approve.');
-            }
-        });
-    });
+				"<'row'" +
+				"<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
+				"<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
+				">"
+		});
+	}
+	
 
-    // Set selected students to pending
-    document.querySelectorAll('.pending-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            let selectedIds = [];
-            document.querySelectorAll('.select-student:checked').forEach(checkbox => {
-                selectedIds.push(checkbox.value);
-            });
-
-            if (selectedIds.length > 0) {
-                window.location.href = '?page=<?php echo $page ?>&pending=' + selectedIds.join(',');
-            } else {
-                alert('Please select at least one student to set as pending.');
-            }
-        });
-    });
-
-    function mails(email) {
-        document.sendmail.email.value = email;
-    }
-
-    // Filter rows based on search input
-    document.getElementById('searchInput').addEventListener('input', function() {
-        let searchValue = this.value.toLowerCase();
-        let rows = document.querySelectorAll('#tableBody .table-row');
-
-        rows.forEach(row => {
-            let name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            let program = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-            let status = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
-
-            if (name.includes(searchValue) || program.includes(searchValue) || status.includes(searchValue)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    });
-
-    // Auto close the alert after 3 seconds
-    document.addEventListener('DOMContentLoaded', function () {
-        var alert = document.getElementById('auto-close-alert');
-        if (alert) {
-            setTimeout(function () {
-                var closeButton = alert.querySelector('.btn-close');
-                if (closeButton) {
-                    closeButton.click();
-                }
-            }, 3000); // 3000 ms = 3 seconds
-        }
-    });
+	 setTimeout(function() {
+	 	table();
+	 }, 1000);
+	 function mails(email){
+	 	document.sendmail.email.value=email;
+	 }
 </script>
 
 <div class="modal fade" tabindex="-1" id="kt_modal_2">
@@ -246,21 +247,24 @@ if (isset($_GET['approve']) || isset($_GET['pending'])) {
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Mailing</h3>
+
+                <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                     <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                 </div>
+                <!--end::Close-->
             </div>
 
             <form method="GET" action="../send-mail.php" name="sendmail">
-                <div class="modal-body">
-                    <input type="hidden" name="email">
-                    <input type="hidden" name="offices" value="<?php echo $user_name ?>">
-                    <textarea class="form-control" placeholder="Please type here" name="msg" required></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-info btn-sm" name="send"><i class="bi bi-send"></i>Send</button>
-                </div>
+            	<div class="modal-body">
+            		<input type="hidden" name="email">
+            		<input type="hidden" name="offices" value="<?php echo$user_name?>">
+            		<textarea class="form-control" placeholder="Please type here" name="msg" required></textarea>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+	                <button type="submit" class="btn btn-info btn-sm" name="send"><i class="bi bi-send"></i>Send</button>
+	            </div>
             </form>
         </div>
     </div>
