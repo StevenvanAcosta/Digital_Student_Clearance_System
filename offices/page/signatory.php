@@ -153,6 +153,7 @@
 <div class="container">
     <?php echo $error ?>
     <h1>Signatory</h1>
+    <button class="btn btn-primary btn-sm" onclick="showRequirements()">Show Requirements</button>
     <table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
         <thead>
             <tr class="fw-bold fs-6 text-gray-800 px-7">
@@ -242,6 +243,7 @@
 	 }
 </script>
 
+<!-- Mail MODAL -->
 <div class="modal fade" tabindex="-1" id="kt_modal_2">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -269,3 +271,123 @@
         </div>
     </div>
 </div>
+
+
+
+
+
+
+
+
+<!-- FUNCTION FOR MODAL REQUIREMENTS -->
+<?php
+
+$table = "requirements";
+
+$success = "";
+$error = "";
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requirement_name'])) {
+    $requirement_name = $_POST['requirement_name'];
+
+    $stmt = $conn->prepare("INSERT INTO $table (requirement_name, offices_id) VALUES (?, ?)");
+    $stmt->bind_param("si", $requirement_name, $user_id);
+
+    if ($stmt->execute()) {
+        $success = "New record created successfully.";
+    } else {
+        $error = "Error: " . $stmt->error;
+    }
+
+    $stmt->close();
+}
+
+// Fetch requirements
+$sql = "SELECT `requirements`.*, `offices`.`name` AS office_name 
+        FROM `requirements` 
+        INNER JOIN `offices` ON `requirements`.`offices_id` = `offices`.`id` 
+        WHERE `requirements`.`offices_id` = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+?>
+
+<!-- MODAL -->
+<div class="modal fade" id="requirementsModal" tabindex="-1" aria-labelledby="requirementsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="requirementsModalLabel">Add Requirements</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Form to insert the requirement -->
+      <form method="POST">
+        <div class="modal-body">
+          <?php if (!empty($success)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <?= $success ?>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          <?php elseif (!empty($error)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <?= $error ?>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          <?php endif; ?>
+
+          <div class="mb-3">
+            <label for="requirementName" class="form-label">Requirement Name</label>
+            <input type="text" class="form-control" id="requirementName" name="requirement_name" required> 
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary btn-sm" name="add">Save Requirement</button>
+        </div>
+      </form>
+
+      <!-- Table -->
+      <div class="modal-body">
+        <div style="max-height: 300px; overflow-y: auto;">
+          <table class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
+            <thead>
+              <tr class="fw-bold fs-6 text-gray-800 px-7">
+                <th>Name</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php
+              if ($result->num_rows > 0) {
+                  while ($row = $result->fetch_assoc()) {
+                      echo "<tr>";
+                      echo "<td>" . htmlspecialchars($row['requirement_name']) . "</td>";
+                      echo "<td><a class='btn btn-light-success btn-sm'><i class='bi bi-check'></i> Signatory List</a></td>";
+                      echo "</tr>";
+                  }
+              } else {
+                  echo "<tr><td colspan='2'>No records found</td></tr>";
+              }
+              ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- JavaScript to show the modal -->
+<script>
+  function showRequirements() {
+    var modal = new bootstrap.Modal(document.getElementById('requirementsModal'));
+    modal.show();
+  }
+</script>
