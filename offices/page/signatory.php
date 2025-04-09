@@ -295,7 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requirement_name'])) 
     $stmt->bind_param("si", $requirement_name, $user_id);
 
     if ($stmt->execute()) {
-        $success = "New record created successfully.";
+        $success = "New requirement created successfully.";
     } else {
         $error = "Error: " . $stmt->error;
     }
@@ -316,7 +316,7 @@ $result = $stmt->get_result();
 
 <!-- MODAL -->
 <div class="modal fade" id="requirementsModal" tabindex="-1" aria-labelledby="requirementsModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-xl">
     <div class="modal-content">
 
       <div class="modal-header">
@@ -357,8 +357,8 @@ $result = $stmt->get_result();
           <table class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
             <thead>
               <tr class="fw-bold fs-6 text-gray-800 px-7">
-                <th>Name</th>
-                <th>Action</th>
+                <th>Requirements Name</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -367,11 +367,18 @@ $result = $stmt->get_result();
                   while ($row = $result->fetch_assoc()) {
                       echo "<tr>";
                       echo "<td>" . htmlspecialchars($row['requirement_name']) . "</td>";
-                      echo "<td><a class='btn btn-light-success btn-sm'><i class='bi bi-check'></i> Signatory List</a></td>";
+                      // Delete button - blue
+                      echo "<td>
+                                <button class='btn btn-danger btn-sm'><i class='bi bi-trash'></i>Delete</button>
+                                <button class='btn btn-primary btn-sm'><i class='bi bi-pencil'></i>Edit</button>
+                                <button class='btn btn-light-success btn-sm' onclick='showSignatories(" . $row['id'] . ")'>
+                                    <i class='bi bi-check'></i> Signatory List
+                                </button>
+                            </td>";
                       echo "</tr>";
                   }
               } else {
-                  echo "<tr><td colspan='2'>No records found</td></tr>";
+                  echo "<tr><td colspan='4'>No records found</td></tr>";
               }
               ?>
             </tbody>
@@ -384,10 +391,118 @@ $result = $stmt->get_result();
 </div>
 
 
+
 <!-- JavaScript to show the modal -->
 <script>
   function showRequirements() {
     var modal = new bootstrap.Modal(document.getElementById('requirementsModal'));
     modal.show();
+  }
+</script>
+
+<!-- Signatory List Modal -->
+<div class="modal fade" id="signatoryModal" tabindex="-1" aria-labelledby="signatoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="signatoryModalLabel">Signatory List</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body" id="signatoryContent">
+        <!-- Dynamic content loaded via JS -->
+        <p>Loading...</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript to trigger Signatory Modal -->
+<script>
+  function showSignatories(requirementId) {
+    const modal = new bootstrap.Modal(document.getElementById('signatoryModal'));
+    const content = document.getElementById('signatoryContent');
+
+    content.innerHTML = `
+      <form method="POST">
+        <input type="hidden" name="offices_id" value="<?php echo $offices_id ?>">
+
+        <!-- Filtered Select2 Dropdown -->
+        <div class="mb-4">
+          <label class="form-label fw-bold">Select Courses</label>
+          <select class="form-select form-select-solid" data-control="select2"
+                  data-close-on-select="false" data-placeholder="Select courses"
+                  data-allow-clear="true" multiple name="courses[]">
+            <?php
+              $sql = "SELECT t.*, 
+                        (SELECT name FROM courses WHERE id=t.courses_id LIMIT 1) AS name,
+                        (SELECT year_level FROM courses WHERE id=t.courses_id LIMIT 1) AS year_level,
+                        (SELECT section FROM courses WHERE id=t.courses_id LIMIT 1) AS section
+                      FROM signatory_list t
+                      WHERE offices_id='$offices_id'";
+              $result = $conn->query($sql);
+
+              if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                  extract($row);
+                  ?>
+                    <option value="<?php echo $courses_id ?>">
+                      <?php echo $name . ' ' . $year_level . $section ?>
+                    </option>
+                  <?php
+                }
+              }
+            ?>
+          </select>
+        </div>
+
+        <!-- Set Active Button -->
+        <div class="d-flex justify-content-end mb-2">
+          <button type="button" class="btn btn-success btn-sm" onclick="setActive()">Save</button>
+        </div>
+
+        <!-- Signatory Table -->
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Program</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td>
+                    <a class="btn btn-light-danger btn-sm"><i class="bi bi-trash"></i></a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary btn-sm" name="add">Set Active</button>
+        </div>
+      </form>
+    `;
+
+    modal.show();
+
+    // Re-initialize Select2
+    setTimeout(() => {
+      $('[data-control="select2"]').select2({
+        dropdownParent: $('#signatoryModal')
+      });
+    }, 300);
+  }
+
+  function setActive() {
+    alert('Set Active clicked!');
+    // Logic for activating selected courses (optional)
   }
 </script>

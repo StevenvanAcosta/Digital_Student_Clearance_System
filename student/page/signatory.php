@@ -13,6 +13,7 @@
                     <th>Offices</th>
                     <th>Status</th>
                     <th>Signatory</th>
+                    <th>Requirements</th>
                     <th>Upload</th> <!-- Upload column header -->
                     <th>Action</th> 
                 </tr>
@@ -53,6 +54,7 @@
                                         <td><?php echo $offices; ?></td>
                                         <td><?php echo $status; ?></td>
                                         <td><?php echo $signatory_firstname . ' ' . $signatory_lastname; ?></td> <!-- Signatory's full name -->
+                                        <td></td>
                                         <td>
                                             <input type="file" name="file_upload[]" /> <!-- Upload file input -->
                                         </td>
