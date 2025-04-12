@@ -39,6 +39,9 @@
 	</div>
 	<!--end::Toolbar container-->
 </div>
+
+
+
 <?php
 
 $table="student";
@@ -246,100 +249,81 @@ $error="";
 	}
 
 	// Import Student Function.......
-	if(isset($_POST['upload'])){
-		$target_dir = "../upload/";
-		$base_name = $today_str."-".basename($_FILES["data_file"]["name"]);
-		$target_file = $target_dir . $base_name;
-		$uploadOk = 1;
-		$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+	// Import Student Function....... 
+if (isset($_POST['upload'])) {
+    $target_dir = "../upload/";
+    $base_name = $today_str . "-" . basename($_FILES["data_file"]["name"]);
+    $target_file = $target_dir . $base_name;
+    $uploadOk = 1;
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-		if($imageFileType != "csv"  ) {
+    if ($imageFileType != "csv") {
+        $error = '<!--begin::Alert-->
+                <div class="alert alert-danger d-flex align-items-center p-5">
+                    <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+                    <div class="d-flex flex-column">
+                        <h4 class="mb-1 text-danger">File upload failed</h4>
+                        <span>File must be CSV type</span>
+                    </div>
+                </div>
+                <!--end::Alert-->';
+    } else {
+        if (move_uploaded_file($_FILES["data_file"]["tmp_name"], $target_file)) {
+            $file = fopen($target_file, "r");
+            $account_same = 0;
+            $account_create = 0;
 
-			  $error='<!--begin::Alert-->
-				<div class="alert alert-danger d-flex align-items-center p-5">
-				    <!--begin::Icon-->
-				    <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
-				    <!--end::Icon-->
+            // Reading the CSV file and processing each row
+            while (($getData = fgetcsv($file, 10000, ",")) !== FALSE) {
+                // Reset $data for each student
+                $data = "";
 
-				    <!--begin::Wrapper-->
-				    <div class="d-flex flex-column">
-				        <!--begin::Title-->
-				        <h4 class="mb-1 text-danger">File upload failed</h4>
-				        <!--end::Title-->
+                // Build the $data for the insert statement
+                $data .= "student_id='$getData[0]',";
+                $data .= "email='$getData[1]',";
+                $data .= "firstname='$getData[2]',";
+                $data .= "lastname='$getData[3]',";
+                $data .= "courses='$getData[4]',";
+                $data .= "year_level='$getData[5]',";
+                $data .= "section='$getData[6]',";
+                $data .= "type='student'";
 
-				        <!--begin::Content-->
-				        <span>File must be CSV type</span>
-				        <!--end::Content-->
-				    </div>
-				    <!--end::Wrapper-->
-				</div>
-				<!--end::Alert-->';
-		}else{
-			if (move_uploaded_file($_FILES["data_file"]["tmp_name"], $target_file)) {
-				$file = fopen($target_file, "r");
-				$data="";
-				$account_same=0;
-				$account_create=0;
+                // Check if email or student_id already exists
+                $sql = "SELECT * FROM $table WHERE email='$getData[1]' OR student_id='$getData[0]'";
+                $result = $conn->query($sql);
 
-			      while (($getData = fgetcsv($file, 10000, ",")) !== FALSE)
-			       {
-			       	$data.="student_id='$getData[0]',";
-			       	$data.="email='$getData[1]',";
-			       	$data.="firstname='$getData[2]',";
-			       	$data.="lastname='$getData[3]',";
-			       	$data.="courses='$getData[4]',";
-			       	$data.="year_level='$getData[5]',";
-			       	$data.="section='$getData[6]',";
-			       	$data.="type='student'";
+                if ($result->num_rows > 0) {
+                    // If account exists
+                    $account_same++;
+                } else {
+                    // If account does not exist, insert the new student
+                    $sql = "INSERT INTO $table SET $data";
+                    if ($conn->query($sql) === TRUE) {
+                        $last_id = $conn->insert_id;
+                        $account_create++;
+                    } else {
+                        echo "Error: " . $sql . "<br>" . $conn->error;
+                    }
+                }
+            }
 
-			       //echo$data;
+            fclose($file);
 
-			       	$sql = "SELECT * FROM $table WHERE email='$getData[1]'";
-					$result = $conn->query($sql);
+            $error .= '<!--begin::Alert-->
+                <div class="alert alert-success d-flex align-items-center p-5">
+                    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"><span class="path1"></span><span class="path2"></span></i>
+                    <div class="d-flex flex-column">
+                        <h4 class="mb-1 text-success">File upload success</h4>
+                        <span>New account created: ' . $account_create . ' | Same account found:  ' . $account_same . '</span>
+                    </div>
+                </div>
+                <!--end::Alert-->';
+        } else {
+            echo "Sorry, there was an error uploading your file.";
+        }
+    }
+}
 
-						if ($result->num_rows > 0) {
-						  // output data of each row
-						 	$account_same=$account_same+1;
-						} else {
-						  	$sql = "INSERT INTO $table SET $data";
-							if ($conn->query($sql) === TRUE) {
-							  $last_id = $conn->insert_id;
-
-							$account_create=$account_create+1;
-							} else {
-							  echo "Error: " . $sql . "<br>" . $conn->error;
-							}
-					    }
-					$error.="<!--begin::Alert-->
-							<div class='alert alert-success d-flex align-items-center p-5'>
-							    <!--begin::Icon-->
-							    <i class='ki-duotone ki-shield-tick fs-2hx text-success me-4'><span class='path1'></span><span class='path2'></span></i>
-							    <!--end::Icon-->
-
-							    <!--begin::Wrapper-->
-							    <div class='d-flex flex-column'>
-							        <!--begin::Title-->
-							        <h4 class='mb-1 text-success'>File upload success</h4>
-							        <!--end::Title-->
-
-							        <!--begin::Content-->
-							        <span>New account created: $account_create | Same account found:  $account_same </span>
-							        <!--end::Content-->
-							    </div>
-							    <!--end::Wrapper-->
-							</div>
-							<!--end::Alert-->";
-					}
-
-			       
-			    
-			  } else {
-			    echo "Sorry, there was an error uploading your file.";
-			  }
-		}
-		
-
-	}
 
 
 ?>

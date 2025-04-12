@@ -68,6 +68,14 @@
                     <span class="menu-title">Courses</span>
                 </a>
             </div>
+            <div class="menu-item">
+                <a class="menu-link" href="?page=studentclearance">
+                    <span class="menu-bullet">
+                        <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">Student Clearance Status</span>
+                </a>
+            </div>
         </div>
     </div>
     <a class="menu-link" href="?page=setting">

@@ -60,10 +60,9 @@ if (!$result) {
 }
 
 $studentRecords = [];
-$displayedStudents = [];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['approve'])) {
-    // Sanitize input
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Get POST data
     $student_id = $conn->real_escape_string($_POST['student_id']);
     $firstname = $conn->real_escape_string($_POST['firstname']);
     $lastname = $conn->real_escape_string($_POST['lastname']);
@@ -71,39 +70,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['approve'])) {
     $course = $conn->real_escape_string($_POST['course']);
     $section = $conn->real_escape_string($_POST['section']);
     
-    // Use prepared statements to avoid SQL injection
-    $insert_sql = "INSERT INTO student_status (student_id, firstname, lastname, year_level, courses, section, status) 
-                   VALUES (?, ?, ?, ?, ?, ?, 'Cleared')";
-    $stmt = $conn->prepare($insert_sql);
-    $stmt->bind_param("isssss", $student_id, $firstname, $lastname, $year_level, $course, $section);
-
-    if ($stmt->execute()) {
-        $success_message = "Student approved and added to student status.";
-    } else {
-        $error_message = "Error: " . $conn->error;
-    }
-}
-
-// Decline functionality (using same logic but with "Not Cleared" status)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['decline'])) {
-    // Sanitize input
-    $student_id = $conn->real_escape_string($_POST['student_id']);
-    $firstname = $conn->real_escape_string($_POST['firstname']);
-    $lastname = $conn->real_escape_string($_POST['lastname']);
-    $year_level = $conn->real_escape_string($_POST['year_level']);
-    $course = $conn->real_escape_string($_POST['course']);
-    $section = $conn->real_escape_string($_POST['section']);
+    // Determine status based on action (approve or decline)
+    $status = isset($_POST['approve']) ? 'Cleared' : 'Not Cleared';
     
-    // Use prepared statements to avoid SQL injection
-    $insert_sql = "INSERT INTO student_status (student_id, firstname, lastname, year_level, courses, section, status) 
-                   VALUES (?, ?, ?, ?, ?, ?, 'Not Cleared')";
-    $stmt = $conn->prepare($insert_sql);
-    $stmt->bind_param("isssss", $student_id, $firstname, $lastname, $year_level, $course, $section);
-
-    if ($stmt->execute()) {
-        $success_message = "Student declined and added to student status.";
+    // Check if student_id already exists in the student_status table
+    $check_sql = "SELECT * FROM student_status WHERE student_id = ?";
+    $stmt = $conn->prepare($check_sql);
+    $stmt->bind_param("s", $student_id);
+    $stmt->execute();
+    $existingRecord = $stmt->get_result()->fetch_assoc();
+    
+    if ($existingRecord) {
+        // If the student already exists, update the status
+        $update_sql = "UPDATE student_status SET status = ? WHERE student_id = ?";
+        $update_stmt = $conn->prepare($update_sql);
+        $update_stmt->bind_param("ss", $status, $student_id);
+        
+        if ($update_stmt->execute()) {
+            $success_message = "Student status updated to $status.";
+        } else {
+            $error_message = "Error: " . $conn->error;
+        }
     } else {
-        $error_message = "Error: " . $conn->error;
+        // If the student does not exist, insert a new record
+        $insert_sql = "INSERT INTO student_status (student_id, firstname, lastname, year_level, courses, section, status) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $insert_stmt = $conn->prepare($insert_sql);
+        $insert_stmt->bind_param("sssssss", $student_id, $firstname, $lastname, $year_level, $course, $section, $status);
+        
+        if ($insert_stmt->execute()) {
+            $success_message = "Student has been added with status: $status.";
+        } else {
+            $error_message = "Error: " . $conn->error;
+        }
     }
 }
 
@@ -112,20 +111,16 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $studentKey = $row['student_id'];
         $studentRecords[$studentKey][] = $row;
-        if (!isset($displayedStudents[$studentKey])) {
-            $displayedStudents[$studentKey] = true;
-        }
     }
 } else {
     echo "<p>No records found.</p>";
 }
 ?>
 
-<!-- Function approve -->
+<!-- Display Success or Error Messages -->
 <?php if (isset($success_message)) echo "<p class='alert alert-success'>$success_message</p>"; ?>
 <?php if (isset($error_message)) echo "<p class='alert alert-danger'>$error_message</p>"; ?>
 
-<!-- HOVER -->
 <style>
 .clickable-row td:hover {
     color: #007bff;
@@ -137,7 +132,7 @@ if ($result->num_rows > 0) {
 
 <div class="container">
     <div class="row mb-3">
-        <!-- Search Box (on the right side using Bootstrap grid system) -->
+        <!-- Search Box -->
         <div class="col-md-4 offset-md-8">
             <input type="text" id="searchInput" class="form-control" placeholder="Search Students..." />
         </div>
@@ -154,21 +149,16 @@ if ($result->num_rows > 0) {
         </thead>
         <tbody>
         <?php
-        if ($result->num_rows > 0) {
-            foreach ($studentRecords as $studentKey => $records) {
-                $record = $records[0]; // Get first record for student
-                ?>
-                <tr class="clickable-row" data-bs-toggle="modal" data-bs-target="#detailsModal"
-                    data-studentkey="<?php echo htmlspecialchars($studentKey); ?>">
-                    <td><?php echo htmlspecialchars($record['firstname'] . ' ' . $record['lastname']); ?></td>
-                    <td><?php echo htmlspecialchars($record['year_level']); ?></td>
-                    <td><?php echo htmlspecialchars($record['course']); ?></td>
-                    <td><?php echo htmlspecialchars($record['section']); ?></td>
-                </tr>
-                <?php
-            }
-        } else {
-            echo "<tr><td colspan='4' class='text-center text-danger'>No records found</td></tr>";
+        foreach ($studentRecords as $studentKey => $records) {
+            $record = $records[0]; // Get first record for student
+            ?>
+            <tr class="clickable-row" data-bs-toggle="modal" data-bs-target="#detailsModal" data-studentkey="<?php echo htmlspecialchars($studentKey); ?>">
+                <td><?php echo htmlspecialchars($record['firstname'] . ' ' . $record['lastname']); ?></td>
+                <td><?php echo htmlspecialchars($record['year_level']); ?></td>
+                <td><?php echo htmlspecialchars($record['course']); ?></td>
+                <td><?php echo htmlspecialchars($record['section']); ?></td>
+            </tr>
+            <?php
         }
         ?>
         </tbody>
@@ -199,10 +189,8 @@ if ($result->num_rows > 0) {
               <th>Date</th>
             </tr>
           </thead>
-          <tbody id="modal-body-content">
-          </tbody>
+          <tbody id="modal-body-content"></tbody>
         </table>
-        <!-- Approve and Decline buttons -->
         <div class="modal-footer">
           <button type="button" class="btn btn-success" id="approveBtn">Approve</button>
           <button type="button" class="btn btn-danger" id="declineBtn">Decline</button>
@@ -214,21 +202,15 @@ if ($result->num_rows > 0) {
 
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", function() {
-    // Initialize the DataTable
     const table = $("#kt_datatable_dom_positioning").DataTable({
-        "language": {
-            "lengthMenu": "Show _MENU_",
-        },
+        "language": { "lengthMenu": "Show _MENU_" },
         "responsive": true
     });
 
-    // Set up the custom search functionality
     document.getElementById("searchInput").addEventListener("input", function() {
-        const searchTerm = this.value;
-        table.search(searchTerm).draw(); // This triggers the search functionality of DataTable
+        table.search(this.value).draw();
     });
 
-    // Extract student records for modal display
     const studentRecords = <?php echo json_encode($studentRecords, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 
     document.querySelectorAll(".clickable-row").forEach(row => {
@@ -246,7 +228,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 document.getElementById("course").textContent = studentData.course;
                 document.getElementById("section").textContent = studentData.section;
 
-                // Fill modal with records from the database
                 let modalContent = "";
                 records.forEach(record => {
                     modalContent += `
@@ -261,8 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Approve button logic inside the modal
-    document.getElementById("approveBtn").addEventListener("click", function() {
+    function handleButtonAction(action) {
         const studentId = document.getElementById("student_id").textContent;
         const studentName = document.getElementById("student_name").textContent.split(' ');
         const firstName = studentName[0];
@@ -271,84 +251,42 @@ document.addEventListener("DOMContentLoaded", function() {
         const course = document.getElementById("course").textContent;
         const section = document.getElementById("section").textContent;
 
-        // Show confirmation dialog (Yes/No)
-        const isApproved = window.confirm("Are you sure you want to approve this student?");
+        const status = action === "approve" ? "Cleared" : "Not Cleared";
 
-        if (isApproved) {
+        const isConfirmed = window.confirm(`Are you sure you want to ${action} this student?`);
+
+        if (isConfirmed) {
             const data = {
-                approve: true,
                 student_id: studentId,
                 firstname: firstName,
                 lastname: lastName,
                 year_level: yearLevel,
                 course: course,
-                section: section
+                section: section,
+                [action]: true
             };
 
-            // Use AJAX to send data to the PHP file for insertion
             fetch(window.location.href, {
                 method: 'POST',
                 body: new URLSearchParams(data),
             })
             .then(response => response.text())
             .then(data => {
-                // Show a success alert after approval
-                alert('Student has been approved and added to student status with status: Cleared.');
-                location.reload(); // Reload to reflect changes
+                alert(`Student has been ${action} and added to student status.`);
+                location.reload();
             })
-            .catch(error => {
-                // Show an error alert on failure
-                alert('Error: ' + error);
-            });
+            .catch(error => alert('Error: ' + error));
         } else {
-            // If user clicked "No", cancel the approval
-            alert("Student approval has been canceled.");
+            alert(`${action.charAt(0).toUpperCase() + action.slice(1)} has been canceled.`);
         }
+    }
+
+    document.getElementById("approveBtn").addEventListener("click", function() {
+        handleButtonAction("approve");
     });
 
-    // Decline button logic inside the modal
     document.getElementById("declineBtn").addEventListener("click", function() {
-        const studentId = document.getElementById("student_id").textContent;
-        const studentName = document.getElementById("student_name").textContent.split(' ');
-        const firstName = studentName[0];
-        const lastName = studentName[1];
-        const yearLevel = document.getElementById("year_level").textContent;
-        const course = document.getElementById("course").textContent;
-        const section = document.getElementById("section").textContent;
-
-        // Show confirmation dialog (Yes/No)
-        const isDeclined = window.confirm("Are you sure you want to decline this student?");
-
-        if (isDeclined) {
-            const data = {
-                decline: true,
-                student_id: studentId,
-                firstname: firstName,
-                lastname: lastName,
-                year_level: yearLevel,
-                course: course,
-                section: section
-            };
-
-            // Use AJAX to send data to the PHP file for insertion
-            fetch(window.location.href, {
-                method: 'POST',
-                body: new URLSearchParams(data),
-            })
-            .then(response => response.text())
-            .then(data => {
-                // Show a success alert after declining
-                alert('Student has been declined and added to student status with status: Not Cleared.');
-                location.reload(); // Reload to reflect changes
-            })
-            .catch(error => {
-                // Show an error alert on failure
-                alert('Error: ' + error);
-            });
-        } else {
-            // If user clicked "No", cancel the decline
-            alert("Student decline has been canceled.");
-        }
+        handleButtonAction("decline");
     });
 });
 </script>

@@ -331,7 +331,7 @@ if(isset($_POST['delete'])){
             		<input class="form-control" type="" name="email" placeholder="Email" required><br>
 					<input class="form-control" type="" name="firstname" placeholder="Firstname" required><br>
               		<input class="form-control" type="" name="lastname" placeholder="Lastname" required><br>
-              		<input class="form-control" type="" name="name" placeholder="Name" required><br>
+              		<input class="form-control" type="" name="name" placeholder="Office name" required><br>
               		<input class="form-control" type="" name="description" placeholder="Description" required><br>
 	            </div>
 	            <div class="modal-footer">

@@ -148,15 +148,86 @@
             }
         }
     }
+
+     // Approve All Logic
+     if (isset($_GET['approve_all'])) {
+      $selectedIds = explode(',', $_GET['approve_all']);
+      $userId = $user_id; // Assuming the current user_id is set
+
+      foreach ($selectedIds as $studentId) {
+          $sql_check = "SELECT * FROM signatory WHERE signatory_list_id='$userId' AND student_id='$studentId'";
+          $result_check = $conn->query($sql_check);
+
+          if ($result_check->num_rows > 0) {
+              $row = $result_check->fetch_assoc();
+              if ($row['status'] != 'Approved') {
+                  // Update to "Approved"
+                  $sql_update = "UPDATE signatory SET status='Approved' WHERE signatory_list_id='$userId' AND student_id='$studentId'";
+                  $conn->query($sql_update);
+              }
+          } else {
+              // Insert if the student is not in the signatory table
+              $sql_insert = "INSERT INTO signatory (signatory_list_id, student_id, date_created, status) 
+                             VALUES ('$userId', '$studentId', NOW(), 'Approved')";
+              $conn->query($sql_insert);
+          }
+      }
+
+      $error = '<div class="alert alert-success d-flex align-items-center p-5">
+                  <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4"></i>
+                  <div class="d-flex flex-column">
+                      <h4 class="mb-1 text-success">Success</h4>
+                      <span>Selected students have been approved.</span>
+                  </div>
+                </div>';
+  }
+  // Pending All Logic
+  if (isset($_GET['pending_all'])) {
+      $selectedIds = explode(',', $_GET['pending_all']);
+      $userId = $user_id; // Assuming the current user_id is set
+
+      foreach ($selectedIds as $studentId) {
+          $sql_check = "SELECT * FROM signatory WHERE signatory_list_id='$userId' AND student_id='$studentId'";
+          $result_check = $conn->query($sql_check);
+
+          if ($result_check->num_rows > 0) {
+              $row = $result_check->fetch_assoc();
+              if ($row['status'] != 'Pending') {
+                  // Update to "Pending"
+                  $sql_update = "UPDATE signatory SET status='Pending' WHERE signatory_list_id='$userId' AND student_id='$studentId'";
+                  $conn->query($sql_update);
+              }
+          } else {
+              // Insert if the student is not in the signatory table
+              $sql_insert = "INSERT INTO signatory (signatory_list_id, student_id, date_created, status) 
+                             VALUES ('$userId', '$studentId', NOW(), 'Pending')";
+              $conn->query($sql_insert);
+          }
+      }
+
+      $error = '<div class="alert alert-info d-flex align-items-center p-5">
+                  <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4"></i>
+                  <div class="d-flex flex-column">
+                      <h4 class="mb-1 text-info">Success</h4>
+                      <span>Selected students have been marked as Pending.</span>
+                  </div>
+                </div>';
+  }
 ?>
 
+
+
+<!-- CONTENT -->
 <div class="container">
     <?php echo $error ?>
     <h1>Signatory</h1>
     <button class="btn btn-primary btn-sm" onclick="showRequirements()">Show Requirements</button>
+    <button class="btn btn-success btn-sm" onclick="approveAll()">Approve All</button>
+    <button class="btn btn-warning btn-sm" onclick="pendingAll()">Pending All</button>
     <table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
         <thead>
             <tr class="fw-bold fs-6 text-gray-800 px-7">
+                <th><input type="checkbox" id="selectAll" />Select</th>
                 <th>Name</th>
                 <th>Program</th>
                 <th>Status</th>
@@ -195,6 +266,7 @@
                                 
                                 ?>
                                 <tr>
+                                    <td><input type="checkbox" class="selectRow" value="<?php echo $id ?>" /></td>
                                     <td><?php echo $firstname ?> <?php echo $lastname ?></td>
                                     <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
                                     <td><?php echo $status ?></td>
@@ -213,6 +285,47 @@
         </tbody>
     </table>
 </div>
+<!-- JavaScript for "Select All", "Approve All" and "Pending All" -->
+<script>
+function getSelectedIds() {
+    let selectedIds = [];
+    document.querySelectorAll('.selectRow:checked').forEach(checkbox => {
+        selectedIds.push(checkbox.value);
+    });
+    return selectedIds;
+}
+
+function pendingAll() {
+    let selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) {
+        alert('Please select at least one student.');
+        return;
+    }
+
+    if (confirm('Are you sure you want to mark all selected students as Pending?')) {
+        window.location.href = '?page=<?php echo $page ?>&pending_all=' + selectedIds.join(',');
+    }
+}
+
+function approveAll() {
+    let selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) {
+        alert('Please select at least one student.');
+        return;
+    }
+
+    if (confirm('Are you sure you want to approve all selected students?')) {
+        window.location.href = '?page=<?php echo $page ?>&approve_all=' + selectedIds.join(',');
+    }
+}
+
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.selectRow');
+    checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+});
+</script>
+
+
 <script type="text/javascript">
 	function table(){
 		$("#kt_datatable_dom_positioning").DataTable({
