@@ -217,6 +217,7 @@
 
 
 
+
 <!-- CONTENT -->
 <div class="container">
     <?php echo $error ?>
@@ -394,9 +395,7 @@ document.getElementById('selectAll').addEventListener('change', function() {
 
 <!-- FUNCTION FOR MODAL REQUIREMENTS -->
 <?php
-
 $table = "requirements";
-
 $success = "";
 $error = "";
 
@@ -513,11 +512,43 @@ $result = $stmt->get_result();
   }
 </script>
 
+
+
+
+
+<!-- function for signatory list -->
+<?php
+// Check if form was submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveSignatories'])) {
+    // Get the offices_id and courses from the POST request
+    $offices_id = $_POST['offices_id'];
+    $courses = $_POST['courses'];  // This is an array of course IDs
+
+    // Check if courses are selected
+    if (!empty($courses)) {
+        foreach ($courses as $course_id) {
+            // Insert each course into the 'program' table
+            $sql = "INSERT INTO program (courses_id, offices_id) VALUES ('$course_id', '$offices_id')";
+            
+            if ($conn->query($sql) === TRUE) {
+                // Successful insertion for this course
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error;
+            }
+        }
+
+        // You can redirect or show a success message after the insert
+        echo "<script>alert('Courses have been saved successfully!');</script>";
+    } else {
+        echo "<script>alert('No courses selected.');</script>";
+    }
+}
+?>
+
 <!-- Signatory List Modal -->
 <div class="modal fade" id="signatoryModal" tabindex="-1" aria-labelledby="signatoryModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-
       <div class="modal-header">
         <h5 class="modal-title" id="signatoryModalLabel">Signatory List</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -527,7 +558,6 @@ $result = $stmt->get_result();
         <!-- Dynamic content loaded via JS -->
         <p>Loading...</p>
       </div>
-
     </div>
   </div>
 </div>
@@ -539,7 +569,7 @@ $result = $stmt->get_result();
     const content = document.getElementById('signatoryContent');
 
     content.innerHTML = `
-      <form method="POST">
+      <form id="saveSignatoriesForm" method="POST">
         <input type="hidden" name="offices_id" value="<?php echo $offices_id ?>">
 
         <!-- Filtered Select2 Dropdown -->
@@ -573,7 +603,7 @@ $result = $stmt->get_result();
 
         <!-- Set Active Button -->
         <div class="d-flex justify-content-end mb-2">
-          <button type="button" class="btn btn-success btn-sm" onclick="setActive()">Save</button>
+          <button type="submit" class="btn btn-success btn-sm" name="saveSignatories">Save</button>
         </div>
 
         <!-- Signatory Table -->
@@ -599,7 +629,6 @@ $result = $stmt->get_result();
         <!-- Footer Buttons -->
         <div class="modal-footer">
           <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary btn-sm" name="add">Set Active</button>
         </div>
       </form>
     `;
@@ -612,10 +641,5 @@ $result = $stmt->get_result();
         dropdownParent: $('#signatoryModal')
       });
     }, 300);
-  }
-
-  function setActive() {
-    alert('Set Active clicked!');
-    // Logic for activating selected courses (optional)
   }
 </script>
