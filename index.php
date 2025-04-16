@@ -26,7 +26,7 @@
 	</head>
 	<!--end::Head-->
 	<!--begin::Body-->
-	<body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center bgi-no-repeat" style="background: green;">
+	<body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center bgi-no-repeat" style="background: #FFFFFF;">
 		<!--begin::Theme mode setup on page load-->
 		<script>var defaultThemeMode = "light"; var themeMode; if ( document.documentElement ) { if ( document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if ( localStorage.getItem("data-bs-theme") !== null ) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
 		<!--end::Theme mode setup on page load-->
@@ -42,9 +42,7 @@
 					<!--begin::Aside-->
 					<div class="d-flex flex-center flex-lg-start flex-column">
 						<!--begin::Logo-->
-						<a href="index.html" class="mb-7">
-							<img alt="Logo" src="images/logo-t.png" style="height: 300px;" />
-						</a>
+							<img alt="Logo" src="images/dscs.png" style="height: 600px;" />
 						<!--end::Logo-->
 						<!--begin::Title-->
 						<!-- <h2 class="text-white fw-normal m-0">Branding tools designed for your business</h2> -->
@@ -56,7 +54,7 @@
 				<!--begin::Body-->
 				<div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center justify-content-lg-end p-12 p-lg-20">
 					<!--begin::Card-->
-					<div class="bg-body d-flex flex-column align-items-stretch flex-center rounded-4 w-md-600px p-20">
+					<div class=" d-flex flex-column align-items-stretch flex-center rounded-4 w-md-600px p-20" style="background: #163B6D">
 						<!--begin::Wrapper-->
 						<div class="d-flex flex-center flex-column flex-column-fluid px-lg-10 pb-15 pb-lg-20">
 							<!--begin::Form-->
@@ -64,8 +62,8 @@
 								<!--begin::Heading-->
 								<div class="text-center mb-11">
 									<!--begin::Title-->
-									<h1 class="text-gray-900 ">Welcome</h1>
-									<h2 class="text-gray ">Digital Student Clearance System</h2>
+									<h1 class="text-white fw-bold ">Welcome</h1>
+									<h2 class="text-white ">Log In</h2>
 									<!--end::Title-->
 									<!--begin::Subtitle-->
 									<!-- <div class="text-gray-500 fw-semibold fs-6">Your Social Campaigns</div> -->
@@ -88,13 +86,13 @@
 										<option>faculty</option>
 										<option>admin</option>
 									</select><br> -->
-									<input type="text" placeholder="Email" name="email" autocomplete="off" class="form-control bg-transparent" />
+									<input type="text" placeholder="Email" name="email" autocomplete="off" class="form-control bg-body" />
 									<!--end::Email-->
 								</div>
 								<!--end::Input group=-->
 								<div class="fv-row mb-3">
 									<!--begin::Password-->
-									<input type="password" placeholder="Password" name="password" autocomplete="off" class="form-control bg-transparent" />
+									<input type="password" placeholder="Password" name="password" autocomplete="off" class="form-control bg-body" />
 									<!--end::Password-->
 								</div>
 								<!--end::Input group=-->

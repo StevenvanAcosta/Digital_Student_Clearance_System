@@ -69,7 +69,7 @@ session_start();
 						<!--begin::Mobile logo RESPONSIVE-->
 						<div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
 							<a href="./" class="d-lg-none">
-								<img alt="Logo" src="../images/logo.png" class="h-35px" />
+								<img alt="Logo" src="../images/dscs-logo2.png" class="h-100px" />
 							</a>
 						</div>
 						<!--end::Mobile logo-->
@@ -236,8 +236,8 @@ session_start();
 						<div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
 							<!--begin::Logo image-->
 							<a href="./">
-								<img alt="Logo" src="../images/logo-h.png" class="h-55px app-sidebar-logo-default" />
-								<img alt="Logo" src="../images/logo.png" class="h-35px app-sidebar-logo-minimize" />
+								<img alt="Logo" src="../images/dscs-logo.png" class="h-150px mt-10 app-sidebar-logo-default" />
+								<img alt="Logo" src="../images/dscs-logo2.png" class="h-55px app-sidebar-logo-minimize" />
 								
 							</a>
 							<!--end::Logo image-->
