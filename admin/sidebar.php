@@ -76,7 +76,16 @@
                     <span class="menu-title">Student Clearance Status</span>
                 </a>
             </div>
+            <div class="menu-item">
+                <a class="menu-link" href="?page=archive_student_record">
+                    <span class="menu-bullet">
+                        <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">Archieve</span>
+                </a>
+            </div>
         </div>
+
     </div>
     <a class="menu-link" href="?page=setting">
         <span class="menu-icon">

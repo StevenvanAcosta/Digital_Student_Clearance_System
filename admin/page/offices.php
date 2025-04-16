@@ -26,7 +26,6 @@
 	</div>
 	<!--end::Toolbar container-->
 </div>
-
 <!-- FUNCTION -->
 <?php
 $table="offices";
@@ -158,21 +157,21 @@ if(isset($_POST['add'])){
 	}
 
 // Delete function
-if(isset($_POST['delete'])){
-    extract($_POST);
-    $data="";
+	if(isset($_POST['delete'])){
+		extract($_POST);
+		$data="";
 
-    foreach ($_POST as $k => $v){
-        if(empty($data)){
-            $data .= " $k='$v' ";
-        }else{
-            if($k=="delete"){
-                $data .= "";
-            }else{
-                $data .= ", $k='$v' ";
-            }
-        }
-    }
+		foreach ($_POST as $k => $v){
+			if(empty($data)){
+				$data .= " $k='$v' ";
+			}else{
+				if($k=="delete"){
+					$data .= "";
+				}else{
+					$data .= ", $k='$v' ";
+				}
+			}
+		}
 
     $data;
 
@@ -184,44 +183,42 @@ if(isset($_POST['delete'])){
         $last_id = $conn->insert_id;
 
         $error='<!--begin::Alert-->
-        <div class="alert alert-danger d-flex align-items-center p-5 alert-dismissible fade show" role="alert" id="autoCloseAlertDelete">
-            <!--begin::Icon-->
-            <i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
-            <!--end::Icon-->
+			<div class="alert alert-danger d-flex align-items-center p-5 alert-dismissible fade show" role="alert" id="autoCloseAlertDelete">
+				<!--begin::Icon-->
+				<i class="ki-duotone ki-shield-tick fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+				<!--end::Icon-->
 
-            <!--begin::Wrapper-->
-            <div class="d-flex flex-column">
-                <!--begin::Title-->
-                <h4 class="mb-1 text-danger">Delete Complete</h4>
-                <!--end::Title-->
+				<!--begin::Wrapper-->
+				<div class="d-flex flex-column">
+					<!--begin::Title-->
+					<h4 class="mb-1 text-danger">Delete Complete</h4>
+					<!--end::Title-->
 
-                <!--begin::Content-->
-                <span>Data has been deleted successfully</span>
-                <!--end::Content-->
-            </div>
-            <!--end::Wrapper-->
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <!--end::Alert-->';
+					<!--begin::Content-->
+					<span>Data has been deleted successfully</span>
+					<!--end::Content-->
+				</div>
+				<!--end::Wrapper-->
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+			<!--end::Alert-->';
 
-        // Add JavaScript for auto-close functionality
-        $error .= '<script>
-            setTimeout(function() {
-                var alertElement = document.getElementById("autoCloseAlertDelete");
-                if (alertElement) {
-                    var alert = new bootstrap.Alert(alertElement);
-                    alert.close();
-                }
-            }, 5000); // Auto close after 5 seconds
-        </script>';
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
-    }
-}
-
-
+			// Add JavaScript for auto-close functionality
+			$error .= '<script>
+				setTimeout(function() {
+					var alertElement = document.getElementById("autoCloseAlertDelete");
+					if (alertElement) {
+						var alert = new bootstrap.Alert(alertElement);
+						alert.close();
+					}
+				}, 5000); // Auto close after 5 seconds
+			</script>';
+		} else {
+			echo "Error: " . $sql . "<br>" . $conn->error;
+		}
+	}
 ?>
-
+<!-- DATA TABLE -->
 <div class="container">
 	<?php echo$error?>
 	<table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
@@ -285,8 +282,6 @@ if(isset($_POST['delete'])){
 				">"
 		});
 	}
-	
-
 	 setTimeout(function() {
 	 	table();
 	 }, 1000);
@@ -296,8 +291,8 @@ if(isset($_POST['delete'])){
 
 	 	form.id.value=id;
 	 	form.email.value=email;
-		 form.firstname.value=firstname;
-		 form.lastname.value=lastname;
+		form.firstname.value=firstname;
+		form.lastname.value=lastname;
 	 	form.name.value=name;
 	 	form.description.value=description;
 	 }
@@ -312,7 +307,7 @@ if(isset($_POST['delete'])){
 	 	form.description.value=description;
 	 }
 </script>
-
+<!-- MODAL -->
 <div class="modal fade" tabindex="-1" id="kt_modal_1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -348,14 +343,13 @@ if(isset($_POST['delete'])){
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Edit</h3>
-
                 <!--begin::Close-->
                 <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
                     <i class="ki-duotone ki-cross fs-1"><span class="path1"></span><span class="path2"></span></i>
                 </div>
                 <!--end::Close-->
             </div>
-<!-- EDIT -->
+			<!-- EDIT -->
             <form method="POST" name="edit_form">
             	<div class="modal-body">
             		<input type="hidden" name="id">
@@ -385,7 +379,7 @@ if(isset($_POST['delete'])){
                 </div>
                 <!--end::Close-->
             </div>
-<!-- DELETE  -->
+			<!-- DELETE  -->
             <form method="POST" name="delete_form">
             	<div class="modal-body">
             		<center><label class="h1">Are you sure you want to delete?</label></center>

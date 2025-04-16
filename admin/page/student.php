@@ -9,16 +9,6 @@
 			<!--begin::Breadcrumb-->
 			<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
 				<!--begin::Item-->
-				<li class="breadcrumb-item text-muted">
-					<a href="index.html" class="text-muted text-hover-primary"><i class="bi bi-house"></i></a>
-				</li>
-				<!--end::Item-->
-				<!--begin::Item-->
-				<li class="breadcrumb-item">
-					<span class="bullet bg-gray-500 w-5px h-2px"></span>
-				</li>
-				<!--end::Item-->
-				<!--begin::Item-->
 				<li class="breadcrumb-item text-muted">Information</li>
 				<!--end::Item-->
 			</ul>
@@ -248,8 +238,9 @@ $error="";
         }
 	}
 
-	// Import Student Function.......
+
 	// Import Student Function....... 
+// Import Student Function
 if (isset($_POST['upload'])) {
     $target_dir = "../upload/";
     $base_name = $today_str . "-" . basename($_FILES["data_file"]["name"]);
@@ -273,6 +264,9 @@ if (isset($_POST['upload'])) {
             $account_same = 0;
             $account_create = 0;
 
+            // Default password hash
+            $default_password = md5('@Admin0123');
+
             // Reading the CSV file and processing each row
             while (($getData = fgetcsv($file, 10000, ",")) !== FALSE) {
                 // Reset $data for each student
@@ -286,17 +280,17 @@ if (isset($_POST['upload'])) {
                 $data .= "courses='$getData[4]',";
                 $data .= "year_level='$getData[5]',";
                 $data .= "section='$getData[6]',";
-                $data .= "type='student'";
+                $data .= "type='student',";
+                $data .= "password='$default_password'";
 
                 // Check if email or student_id already exists
                 $sql = "SELECT * FROM $table WHERE email='$getData[1]' OR student_id='$getData[0]'";
                 $result = $conn->query($sql);
 
                 if ($result->num_rows > 0) {
-                    // If account exists
                     $account_same++;
                 } else {
-                    // If account does not exist, insert the new student
+                    // Insert the new student
                     $sql = "INSERT INTO $table SET $data";
                     if ($conn->query($sql) === TRUE) {
                         $last_id = $conn->insert_id;
@@ -323,6 +317,7 @@ if (isset($_POST['upload'])) {
         }
     }
 }
+
 
 
 

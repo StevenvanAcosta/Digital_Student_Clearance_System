@@ -26,10 +26,10 @@
 	</div>
 	<!--end::Toolbar container-->
 </div>
+
 <?php
 $table="signatory_list";
 $error="";
-
 $offices_id=$_GET['offices_id'];
 
 	if(isset($_POST['add'])){
@@ -52,10 +52,6 @@ $offices_id=$_GET['offices_id'];
                 
             }
         }
-
-        
-
-        
 
         $data.=", date_time=NOW()";
         $sql1="SELECT * FROM student;";
@@ -80,8 +76,6 @@ $offices_id=$_GET['offices_id'];
 		        }
         }
 
-
-        
 
         if ($conn->multi_query($sql1) === TRUE) {
              $last_id = $conn->insert_id;
@@ -230,9 +224,8 @@ $offices_id=$_GET['offices_id'];
         }
 	}
 
-
 ?>
-
+<!-- Data Table -->
 <div class="container">
 	<?php echo$error?>
 	<table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
@@ -380,7 +373,7 @@ $offices_id=$_GET['offices_id'];
         </div>
     </div>
 </div>
-
+<!-- Modal Edit -->
 <div class="modal fade" tabindex="-1" id="kt_modal_3">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -393,7 +386,7 @@ $offices_id=$_GET['offices_id'];
                 </div>
                 <!--end::Close-->
             </div>
-
+<!-- Delete -->
             <form method="POST" name="delete_form">
             	<div class="modal-body">
             		<center><label class="h1">Are you sure you want to delete?</label></center>

@@ -37,11 +37,9 @@
 </div>
 
 <?php
-// Ensure database connection is set
 if (!isset($conn)) {
     die("Database connection error");
 }
-
 $table = 'signatory';
 $error = "";
 
@@ -129,7 +127,7 @@ if ($result->num_rows > 0) {
     transition: color 0.3s ease-in-out;
 }
 </style>
-
+<!-- search bar -->
 <div class="container">
     <div class="row mb-3">
         <!-- Search Box -->
@@ -137,7 +135,7 @@ if ($result->num_rows > 0) {
             <input type="text" id="searchInput" class="form-control" placeholder="Search Students..." />
         </div>
     </div>
-
+<!-- data table -->
     <table id="kt_datatable_dom_positioning" class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
         <thead>
             <tr class="fw-bold fs-6 text-gray-800 px-7">
@@ -151,7 +149,7 @@ if ($result->num_rows > 0) {
         <?php
         foreach ($studentRecords as $studentKey => $records) {
             $record = $records[0]; // Get first record for student
-            ?>
+        ?>
             <tr class="clickable-row" data-bs-toggle="modal" data-bs-target="#detailsModal" data-studentkey="<?php echo htmlspecialchars($studentKey); ?>">
                 <td><?php echo htmlspecialchars($record['firstname'] . ' ' . $record['lastname']); ?></td>
                 <td><?php echo htmlspecialchars($record['year_level']); ?></td>
@@ -160,12 +158,12 @@ if ($result->num_rows > 0) {
             </tr>
             <?php
         }
-        ?>
+            ?>
         </tbody>
     </table>
 </div>
 
-<!-- Modal -->
+<!-- Modal student clearance -->
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">

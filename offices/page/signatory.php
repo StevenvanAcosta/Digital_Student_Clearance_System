@@ -232,6 +232,7 @@
                 <th>Name</th>
                 <th>Program</th>
                 <th>Status</th>
+                <th>Upload Requirement</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -271,6 +272,7 @@
                                     <td><?php echo $firstname ?> <?php echo $lastname ?></td>
                                     <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
                                     <td><?php echo $status ?></td>
+                                    <td>Dito nakalagay yung upload na requirement</td>
                                     <td>
                                         <a class="btn btn-light-success btn-sm" href="?page=<?php echo $page ?>&approve=<?php echo $id ?>">Approve</a>
                                         <a class="btn btn-light-warning btn-sm" href="?page=<?php echo $page ?>&pending=<?php echo $id ?>">Pending</a>
