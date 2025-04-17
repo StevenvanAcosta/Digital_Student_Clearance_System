@@ -76,7 +76,7 @@
 	</head>
 	<!--end::Head-->
 	<!--begin::Body-->
-	<body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center bgi-no-repeat" style="background: green;">
+	<body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center bgi-no-repeat" style="background: #FFFFFF;">
 		<!--begin::Theme mode setup on page load-->
 		<script>var defaultThemeMode = "light"; var themeMode; if ( document.documentElement ) { if ( document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if ( localStorage.getItem("data-bs-theme") !== null ) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
 		<!--end::Theme mode setup on page load-->
@@ -93,7 +93,7 @@
 					<div class="d-flex flex-center flex-lg-start flex-column">
 						<!--begin::Logo-->
 						<a href="index.html" class="mb-7">
-							<img alt="Logo" src="images/logo-t.png" style="height: 300px;" />
+							<img alt="Logo" src="images/dscs-logo.png" style="height: 500px;" />
 						</a>
 						<!--end::Logo-->
 						<!--begin::Title-->
@@ -104,13 +104,13 @@
 				</div>
 				<!--begin::Aside-->
 				<!--begin::Body-->
-				<div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center justify-content-lg-end p-12 p-lg-20">
+				<div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center justify-content-lg-end p-12 p-lg-20" >
 					<!--begin::Card-->
-					<div class="bg-body d-flex flex-column align-items-stretch flex-center rounded-4 w-md-600px p-20">
+					<div class=" d-flex flex-column align-items-stretch flex-center rounded-4 w-md-600px p-20" style="background: #163B6D;" >
 						<!--begin::Wrapper-->
-						<div class="d-flex flex-center flex-column flex-column-fluid px-lg-10 pb-15 pb-lg-20">
+						<div class="d-flex flex-center flex-column flex-column-fluid px-lg-10 pb-15 pb-lg-20" >
 							<!--begin::Form-->
-							<form class="form w-100 mb-13" novalidate="novalidate" data-kt-redirect-url="index.html" id="kt_sing_in_two_factor_form" method="POST">
+							<form class="form w-100 mb-13" novalidate="novalidate" data-kt-redirect-url="index.html" id="kt_sing_in_two_factor_form" method="POST"  >
 								<!--begin::Icon-->
 								<div class="text-center mb-10">
 									<img alt="Logo" class="mh-125px" src="assets/media/svg/misc/smartphone-2.svg" />
@@ -119,10 +119,10 @@
 								<!--begin::Heading-->
 								<div class="text-center mb-10">
 									<!--begin::Title-->
-									<h1 class="text-gray-900 mb-3">Two-Factor Verification</h1>
+									<h1 class="text-white mb-3">Two-Factor Verification</h1>
 									<!--end::Title-->
 									<!--begin::Sub-title-->
-									<div class="text-muted fw-semibold fs-5 mb-5">Enter the verification code we sent </div>
+									<div class="text-white fw-semibold fs-5 mb-5">Enter the verification code we sent </div>
 									<!--end::Sub-title-->
 									<!--begin::Mobile no-->
 									<!-- <div class="fw-bold text-gray-900 fs-3">******7859</div> -->
@@ -133,7 +133,7 @@
 								<!--begin::Section-->
 								<div class="mb-10">
 									<!--begin::Label-->
-									<div class="fw-bold text-start text-gray-900 fs-6 mb-1 ms-1">Type your 6 digit security code</div>
+									<div class="fw-bold text-start text-white fs-6 mb-1 ms-1">Type your 6 digit security code</div>
 									<!--end::Label-->
 									<!--begin::Input group-->
 									<div class="d-flex flex-wrap flex-stack">
