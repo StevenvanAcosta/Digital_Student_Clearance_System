@@ -265,17 +265,17 @@
                                 } else {
                                     $status = 'Pending';
                                 }
-                                
+                                 
                                 ?>
                                 <tr>
                                     <td><input type="checkbox" class="selectRow" value="<?php echo $id ?>" /></td>
                                     <td><?php echo $firstname ?> <?php echo $lastname ?></td>
                                     <td><?php echo $name ?> <?php echo $year_level ?> <?php echo $section ?></td>
                                     <td><?php echo $status ?></td>
-                                    <td>Dito nakalagay yung upload na requirement</td>
+                                    <td><a href="#" class="see-details-link" onclick="showModal()">See details</a></td>
                                     <td>
                                         <a class="btn btn-light-success btn-sm" href="?page=<?php echo $page ?>&approve=<?php echo $id ?>">Approve</a>
-                                        <a class="btn btn-light-warning btn-sm" href="?page=<?php echo $page ?>&pending=<?php echo $id ?>">Pending</a>
+                                        <a class="btn btn-light-warning btn-sm" href="?page=<?php echo $page ?>&pending=<?php echo $id ?>">In Progress</a>
                                         <a class="btn btn-light-info btn-sm" onclick="mails('<?php echo $email ?>');" data-bs-toggle="modal" data-bs-target="#kt_modal_2"><i class="bi bi-send"></i> Mail</a>
                                     </td>
                                 </tr>
@@ -288,6 +288,46 @@
         </tbody>
     </table>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailsModalLabel">Upload Requirement</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Upload Requirement goes here.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS for modal -->
+<script>
+function showModal() {
+    var modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    modal.show();
+}
+</script>
+
+<!-- Optional CSS for Underline -->
+<style>
+    .see-details-link {
+        text-decoration: underline;
+        cursor: pointer;
+        color: #007bff;
+    }
+
+    .see-details-link:hover {
+        color: #0056b3;
+    }
+</style>
+
 <!-- JavaScript for "Select All", "Approve All" and "Pending All" -->
 <script>
 function getSelectedIds() {
@@ -395,13 +435,12 @@ document.getElementById('selectAll').addEventListener('change', function() {
 
 
 
-<!-- FUNCTION FOR MODAL REQUIREMENTS -->
 <?php
 $table = "requirements";
 $success = "";
 $error = "";
 
-// Handle form submission
+// ADD NEW REQUIREMENT
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requirement_name'])) {
     $requirement_name = $_POST['requirement_name'];
 
@@ -417,7 +456,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['requirement_name'])) 
     $stmt->close();
 }
 
-// Fetch requirements
+// EDIT REQUIREMENT
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_id'])) {
+    $edit_id = $_POST['edit_id'];
+    $edit_requirement_name = $_POST['edit_requirement_name'];
+
+    $stmt = $conn->prepare("UPDATE $table SET requirement_name = ? WHERE id = ?");
+    $stmt->bind_param("si", $edit_requirement_name, $edit_id);
+
+    if ($stmt->execute()) {
+        $success = "Requirement updated successfully.";
+    } else {
+        $error = "Error updating: " . $stmt->error;
+    }
+
+    $stmt->close();
+}
+
+// DELETE REQUIREMENT
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    $delete_id = $_POST['delete_id'];
+
+    $stmt = $conn->prepare("DELETE FROM $table WHERE id = ?");
+    $stmt->bind_param("i", $delete_id);
+
+    if ($stmt->execute()) {
+        $success = "Requirement deleted successfully.";
+    } else {
+        $error = "Error deleting: " . $stmt->error;
+    }
+
+    $stmt->close();
+}
+
+// FETCH REQUIREMENTS
 $sql = "SELECT `requirements`.*, `offices`.`name` AS office_name 
         FROM `requirements` 
         INNER JOIN `offices` ON `requirements`.`offices_id` = `offices`.`id` 
@@ -428,7 +500,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 ?>
 
-<!-- MODAL -->
+<!-- MAIN MODAL -->
 <div class="modal fade" id="requirementsModal" tabindex="-1" aria-labelledby="requirementsModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
@@ -438,7 +510,6 @@ $result = $stmt->get_result();
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <!-- Form to insert the requirement -->
       <form method="POST">
         <div class="modal-body">
           <?php if (!empty($success)): ?>
@@ -465,13 +536,13 @@ $result = $stmt->get_result();
         </div>
       </form>
 
-      <!-- Table -->
+      <!-- TABLE OF REQUIREMENTS -->
       <div class="modal-body">
         <div style="max-height: 300px; overflow-y: auto;">
           <table class="table table-striped table-row-bordered gy-5 gs-7 border rounded">
             <thead>
               <tr class="fw-bold fs-6 text-gray-800 px-7">
-                <th>Requirements Name</th>
+                <th>Requirement Name</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -481,18 +552,22 @@ $result = $stmt->get_result();
                   while ($row = $result->fetch_assoc()) {
                       echo "<tr>";
                       echo "<td>" . htmlspecialchars($row['requirement_name']) . "</td>";
-                      // Delete button - blue
                       echo "<td>
-                                <button class='btn btn-danger btn-sm'><i class='bi bi-trash'></i>Delete</button>
-                                <button class='btn btn-primary btn-sm'><i class='bi bi-pencil'></i>Edit</button>
-                                <button class='btn btn-light-success btn-sm' onclick='showSignatories(" . $row['id'] . ")'>
-                                    <i class='bi bi-check'></i> Signatory List
-                                </button>
+                              <form method='POST' style='display:inline-block;' onsubmit='return confirm(\"Are you sure you want to delete this requirement?\");'>
+                                <input type='hidden' name='delete_id' value='" . $row['id'] . "'>
+                                <button type='submit' class='btn btn-danger btn-sm'><i class='bi bi-trash'></i> Delete</button>
+                              </form>
+                              <button class='btn btn-primary btn-sm' onclick='openEditModal(" . $row['id'] . ", `" . htmlspecialchars($row['requirement_name'], ENT_QUOTES) . "`)'>
+                                <i class='bi bi-pencil'></i> Edit
+                              </button>
+                              <button class='btn btn-light-success btn-sm' onclick='showSignatories(" . $row['id'] . ")'>
+                                <i class='bi bi-check'></i> Signatory List
+                              </button>
                             </td>";
                       echo "</tr>";
                   }
               } else {
-                  echo "<tr><td colspan='4'>No records found</td></tr>";
+                  echo "<tr><td colspan='2'>No records found</td></tr>";
               }
               ?>
             </tbody>
@@ -504,15 +579,48 @@ $result = $stmt->get_result();
   </div>
 </div>
 
+<!-- EDIT MODAL -->
+<div class="modal fade" id="editRequirementModal" tabindex="-1" aria-labelledby="editRequirementModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editRequirementModalLabel">Edit Requirement</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
 
+        <div class="modal-body">
+          <input type="hidden" name="edit_id" id="editRequirementId">
+          <div class="mb-3">
+            <label for="editRequirementName" class="form-label">Requirement Name</label>
+            <input type="text" class="form-control" id="editRequirementName" name="edit_requirement_name" required>
+          </div>
+        </div>
 
-<!-- JavaScript to show the modal -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
 <script>
   function showRequirements() {
     var modal = new bootstrap.Modal(document.getElementById('requirementsModal'));
     modal.show();
   }
+
+  function openEditModal(id, name) {
+    document.getElementById('editRequirementId').value = id;
+    document.getElementById('editRequirementName').value = name;
+    var modal = new bootstrap.Modal(document.getElementById('editRequirementModal'));
+    modal.show();
+  }
 </script>
+
 
 
 
@@ -522,15 +630,16 @@ $result = $stmt->get_result();
 <?php
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveSignatories'])) {
-    // Get the offices_id and courses from the POST request
+    // Get the required fields from the POST request
     $offices_id = $_POST['offices_id'];
     $courses = $_POST['courses'];  // This is an array of course IDs
+    $requirement_id = $_POST['requirement_id']; // Retrieve the requirement ID
 
     // Check if courses are selected
     if (!empty($courses)) {
         foreach ($courses as $course_id) {
-            // Insert each course into the 'program' table
-            $sql = "INSERT INTO program (courses_id, offices_id) VALUES ('$course_id', '$offices_id')";
+            // Insert each course into the 'program' table with the requirement ID
+            $sql = "INSERT INTO program (courses_id, offices_id, requirement_id) VALUES ('$course_id', '$offices_id', '$requirement_id')";
             
             if ($conn->query($sql) === TRUE) {
                 // Successful insertion for this course
@@ -546,6 +655,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveSignatories'])) {
     }
 }
 ?>
+
 
 <!-- Signatory List Modal -->
 <div class="modal fade" id="signatoryModal" tabindex="-1" aria-labelledby="signatoryModalLabel" aria-hidden="true">
@@ -572,14 +682,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveSignatories'])) {
 
     content.innerHTML = `
       <form id="saveSignatoriesForm" method="POST">
+        <input type="hidden" name="requirement_id" value="${requirementId}">
         <input type="hidden" name="offices_id" value="<?php echo $offices_id ?>">
 
         <!-- Filtered Select2 Dropdown -->
         <div class="mb-4">
           <label class="form-label fw-bold">Select Courses</label>
-          <select class="form-select form-select-solid" data-control="select2"
+          <select id="coursesSelect" class="form-select form-select-solid" data-control="select2"
                   data-close-on-select="false" data-placeholder="Select courses"
                   data-allow-clear="true" multiple name="courses[]">
+            <option value="select_all">Select All Courses</option>
             <?php
               $sql = "SELECT t.*, 
                         (SELECT name FROM courses WHERE id=t.courses_id LIMIT 1) AS name,
@@ -621,7 +733,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveSignatories'])) {
               <tr>
                 <td></td>
                 <td>
-                    <a class="btn btn-light-danger btn-sm"><i class="bi bi-trash"></i></a>
+                  <a class="btn btn-light-danger btn-sm"><i class="bi bi-trash"></i></a>
                 </td>
               </tr>
             </tbody>
@@ -637,10 +749,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveSignatories'])) {
 
     modal.show();
 
-    // Re-initialize Select2
+    // Re-initialize Select2 and Select All logic
     setTimeout(() => {
-      $('[data-control="select2"]').select2({
+      const select2 = $('[data-control="select2"]');
+      select2.select2({
         dropdownParent: $('#signatoryModal')
+      });
+
+      // Handle 'Select All' logic
+      $('#coursesSelect').on('select2:select', function (e) {
+        if (e.params.data.id === 'select_all') {
+          const allValues = $('#coursesSelect option')
+            .filter(function () {
+              return $(this).val() !== 'select_all';
+            })
+            .map(function () {
+              return $(this).val();
+            }).get();
+
+          $('#coursesSelect').val(allValues).trigger('change');
+        }
+      });
+
+      $('#coursesSelect').on('select2:unselect', function (e) {
+        if (e.params.data.id === 'select_all') {
+          $('#coursesSelect').val(null).trigger('change');
+        }
       });
     }, 300);
   }

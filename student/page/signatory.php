@@ -73,23 +73,53 @@
                                 while ($row = $result->fetch_assoc()) {
                                     extract($row);
 
-                                    $sql2 = "SELECT * FROM signatory WHERE signatory_list_id='$offices_id' AND student_id='$user_id'";
+                                    $sql2 = "SELECT status FROM signatory WHERE signatory_list_id='$offices_id' AND student_id='$user_id'";
                                     $result2 = $conn->query($sql2);
-
-                                    $status = ($result2->num_rows > 0) ? 'Approve' : 'Pending';
-
-                                    // Display signatory's firstname and lastname
+                                    
+                                    if ($result2->num_rows > 0) {
+                                        $status_row = $result2->fetch_assoc();
+                                        $status = $status_row['status'];
+                                    } else {
+                                        $status = 'Pending';
+                                    }
+                                
                                     ?>
                                     <tr>
                                         <td><?php echo $offices; ?></td>
-                                        <td><?php echo $status; ?></td>
-                                        <td><?php echo $signatory_firstname . ' ' . $signatory_lastname; ?></td> <!-- Signatory's full name -->
-                                        <td></td>
                                         <td>
-                                            <input type="file" name="file_upload[]" /> <!-- Upload file input -->
+                                            <span class="badge <?php echo ($status == 'Approved') ? 'bg-success' : (($status == 'Pending') ? 'bg-warning' : 'bg-secondary'); ?>">
+                                                <?php echo $status; ?>
+                                            </span>
                                         </td>
-                                        <td>
-                                            <button type="submit" class="btn btn-primary">Submit</button> <!-- Submit button -->
+
+                                        <td><?php echo $signatory_firstname . ' ' . $signatory_lastname; ?></td>
+                                        <td class="requirements">
+                                            <?php
+                                                $hasRequirements = false;
+                                                $requirement_sql = "SELECT r.requirement_name
+                                                                    FROM program p
+                                                                    INNER JOIN requirements r ON p.requirement_id = r.id
+                                                                    WHERE p.courses_id = '$courses_id' AND p.offices_id = '$offices_id'";
+                                                $requirement_result = $conn->query($requirement_sql);
+
+                                                if ($requirement_result->num_rows > 0) {
+                                                    while ($req_row = $requirement_result->fetch_assoc()) {
+                                                        $requirement_name = htmlspecialchars($req_row['requirement_name']);
+                                                        echo "<div>$requirement_name</div>";
+                                                        if (strtolower($requirement_name) !== "no requirements") {
+                                                            $hasRequirements = true;
+                                                        }
+                                                    }
+                                                } else {
+                                                    echo "<div>No requirements</div>";
+                                                }
+                                            ?>
+                                        </td>
+                                        <td class="upload-cell">
+                                            <input type="file" name="file_upload[]" />
+                                        </td>
+                                        <td class="submit-cell">
+                                            <button type="submit" class="btn btn-primary">Submit</button>
                                         </td>
                                     </tr>
                                     <?php
@@ -114,9 +144,7 @@
                 "<'col-sm-6 d-flex align-items-center justify-content-start dt-toolbar'l>" +
                 "<'col-sm-6 d-flex align-items-center justify-content-end dt-toolbar'f>" +
                 ">" + 
-
                 "<'table-responsive'tr>" + 
-
                 "<'row'" +
                 "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
                 "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
@@ -124,7 +152,19 @@
         });
     }
 
+    function toggleUploadButtons() {
+        $('#kt_datatable_dom_positioning tbody tr').each(function () {
+            var requirementText = $(this).find('.requirements').text().trim().toLowerCase();
+            if (requirementText === 'no requirements') {
+                $(this).find('.upload-cell, .submit-cell').hide();
+            } else {
+                $(this).find('.upload-cell, .submit-cell').show();
+            }
+        });
+    }
+
     setTimeout(function () {
         table();
+        toggleUploadButtons();
     }, 1000);
 </script>
